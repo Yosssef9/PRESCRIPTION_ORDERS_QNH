@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+/* ===== Global Scrollbar (Brown Theme - Thin & Visible) ===== */
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(109, 76, 65, 0.9) rgba(215, 204, 200, 0.2);
+}
+
+/* Chrome, Edge, Safari */
+*::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+/* Track (background) */
+*::-webkit-scrollbar-track {
+  background: rgba(215, 204, 200, 0.2);
+  border-radius: 999px;
+}
+
+/* Thumb (the draggable part) */
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #7b5e57, #5d4037);
+  border-radius: 999px;
+}
+
+/* Hover state (important UX) */
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #6d4c41, #4e342e);
+  box-shadow: 0 0 4px rgba(93, 64, 55, 0.4);
+}
+
+/* Corner (when both scrollbars appear) */
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Optional: smooth page scrolling */
+html {
+  scroll-behavior: smooth;
+}
