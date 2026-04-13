@@ -46,6 +46,10 @@ export async function searchOrders(filters) {
 
   return data;
 }
+export async function getOrderByNo(orderNo) {
+  const { data } = await api.get(`/orders/${orderNo}`);
+  return data;
+}
 export async function getOrderDetails(orderNo) {
   const { data } = await api.get(`/orders/${orderNo}/details`);
   return data;

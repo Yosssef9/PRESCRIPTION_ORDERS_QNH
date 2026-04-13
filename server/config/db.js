@@ -21,7 +21,17 @@ let poolPromise;
 
 async function getPool() {
   if (!poolPromise) {
-    poolPromise = sql.connect(dbConfig);
+    poolPromise = sql
+      .connect(dbConfig)
+      .then((pool) => {
+        console.log("✅ Database connected successfully");
+        return pool;
+      })
+      .catch((err) => {
+        console.error("❌ Database connection failed:", err);
+        poolPromise = null; // reset so it can retry
+        throw err;
+      });
   }
   return poolPromise;
 }

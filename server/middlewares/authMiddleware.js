@@ -5,7 +5,7 @@ function authMiddleware(req, res, next) {
     return res.status(401).json({ message: "Unauthorized" });
   }
   const token = authHeader.split(" ")[1];
-  console.log("token", token);
+  console.log("authMiddleware token", token);
   try {
     const payload = jwt.verify(token, process.env.PORTAL_JWT_SECRET);
     req.user = {
@@ -14,6 +14,8 @@ function authMiddleware(req, res, next) {
       name: payload.name,
       role: payload.role,
     };
+      console.log("authMiddleware payload", payload);
+
     next();
   } catch (error) {
     return res.status(401).json({ message: "Invalid or expired token" });

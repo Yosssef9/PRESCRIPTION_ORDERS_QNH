@@ -21,46 +21,45 @@
 //   ];
 //   return mockSections || null;
 // }
+// const mockOrders = [
+//   {
+//     orderNo: "ORD-1001",
+//     orderDate: "2026-04-01",
+//     doctor: "Dr. Khaled Al-Otaibi",
+//     department: "Internal Medicine",
+//     status: "Active",
+//     itemsCount: 3,
+//     patientCode: "P001",
+//     sectionName: "Emergency",
+//   },
+//   {
+//     orderNo: "ORD-1002",
+//     orderDate: "2026-04-04",
+//     doctor: "Dr. Ahmed Mansour",
+//     department: "Emergency",
+//     status: "Pending",
+//     itemsCount: 11,
+//     patientCode: "P001",
+//     sectionName: "Emergency",
+//   },
+//   {
+//     orderNo: "ORD-2001",
+//     orderDate: "2026-03-29",
+//     doctor: "Dr. Layla Samir",
+//     department: "Obstetrics & Gynecology",
+//     status: "On Hold",
+//     itemsCount: 2,
+//     patientCode: "P002",
+//     sectionName: "Emergency",
+//   },
+// ];
+
 // async function spSearchOrders({
 //   patientCode,
 //   dateFrom,
 //   dateTo,
 //   sections = [],
 // }) {
-//   const mockOrders = [
-//     {
-//       orderNo: "ORD-1001",
-//       orderDate: "2026-04-01",
-//       doctor: "Dr. Khaled Al-Otaibi",
-//       department: "Internal Medicine",
-//       status: "Active",
-//       itemsCount: 3,
-//       patientCode: "P001",
-//       sectionName: "Emergency",
-//     },
-
-//     {
-//       orderNo: "ORD-1002",
-//       orderDate: "2026-04-04",
-//       doctor: "Dr. Ahmed Mansour",
-//       department: "Emergency",
-//       status: "Pending",
-//       itemsCount: 11,
-//       patientCode: "P001",
-//       sectionName: "Emergency",
-//     },
-//     {
-//       orderNo: "ORD-2001",
-//       orderDate: "2026-03-29",
-//       doctor: "Dr. Layla Samir",
-//       department: "Obstetrics & Gynecology",
-//       status: "On Hold",
-//       itemsCount: 2,
-//       patientCode: "P002",
-//       sectionName: "Emergency",
-//     },
-//   ];
-
 //   return mockOrders.filter((order) => {
 //     if (patientCode && order.patientCode !== patientCode) return false;
 //     if (dateFrom && order.orderDate < dateFrom) return false;
@@ -69,6 +68,16 @@
 //       return false;
 //     return true;
 //   });
+// }
+
+// async function spGetOrderByNo(orderNo) {
+//   if (!orderNo) return null;
+
+//   return (
+//     mockOrders.find(
+//       (order) => order.orderNo.toLowerCase() === String(orderNo).toLowerCase(),
+//     ) || null
+//   );
 // }
 // const mockDetails = {
 //   "ORD-1001": [
@@ -316,6 +325,7 @@
 //   spGetOrderDetails,
 //   spSaveOrderItems,
 //   spGetSections,
+//   spGetOrderByNo,
 // };
 
 const { sql, getPool } = require("../config/db");
@@ -323,35 +333,27 @@ const { sql, getPool } = require("../config/db");
 // =========================
 // Patient by code
 // SP_GET_PH_PAT_CODE_PrescriptionOrders
-// @PATIENT_COD
 // =========================
 async function spGetPatientByCode(patientCode) {
   const pool = await getPool();
 
   const result = await pool
     .request()
-    .input("PATIENT_COD", sql.VarChar(50), patientCode)
+    .input("PATIENT_CODE", sql.VarChar(50), patientCode)
     .execute("SP_GET_PH_PAT_CODE_PrescriptionOrders");
 
   const row = result.recordset?.[0];
-
   if (!row) return null;
 
   return {
-    patientCode: patientCode,
-    patientName:
-      row.patientName ||
-      row.PATIENT_NAME ||
-      row.PatientName ||
-      row.PAT_NAME ||
-      "",
+    patientCode: row.PATIENT_CODE || patientCode,
+    patientName: row.PATIENT_NAME || row.PATIENT_NAME_EN || "",
   };
 }
 
 // =========================
 // Sections
 // SP_GET_PH_SECTIONS_PrescriptionOrders
-// no params
 // =========================
 async function spGetSections() {
   const pool = await getPool();
@@ -361,128 +363,148 @@ async function spGetSections() {
     .execute("SP_GET_PH_SECTIONS_PrescriptionOrders");
 
   return (result.recordset || []).map((row) => ({
-    sectionName:
-      row.sectionName ||
-      row.SECTION_NAME ||
-      row.SectionName ||
-      row.SECTION_DESC ||
-      "",
+    sectionName: row.SECTION_NAME || row.sectionName || "",
   }));
 }
 
 // =========================
-// Orders
+// Orders table
 // SP_GET_PH_PrescriptionOrders
-// @PATIENT_CODE
-// @SECTION_NAME
-// @ORDER_DATE_FROM
-// @ORDER_DATE_TO
 // =========================
 async function spSearchOrders({
-  patientCode,
-  dateFrom,
-  dateTo,
+  patientCode = null,
+  dateFrom = null,
+  dateTo = null,
   sections = [],
+  orderNo = null,
 }) {
   const pool = await getPool();
 
-  // If multiple sections are selected, pass them as comma-separated string
-  // unless your SP expects another format.
-  const sectionNameParam = sections.length > 0 ? sections.join(",") : "";
+  const sectionNameParam =
+    Array.isArray(sections) && sections.length > 0 ? sections[0] : null;
 
-  const result = await pool
-    .request()
-    .input("PATIENT_CODE", sql.VarChar(50), patientCode || "")
-    .input("SECTION_NAME", sql.VarChar(sql.MAX), sectionNameParam)
-    .input("ORDER_DATE_FROM", sql.VarChar(20), dateFrom || "")
-    .input("ORDER_DATE_TO", sql.VarChar(20), dateTo || "")
-    .execute("SP_GET_PH_PrescriptionOrders");
+  const request = pool.request();
+
+  request.input("PATIENT_CODE", sql.VarChar(50), patientCode || null);
+  request.input("SECTION_NAME", sql.VarChar(200), sectionNameParam || null);
+  request.input(
+    "ORDER_DATE_FROM",
+    sql.DateTime,
+    dateFrom ? new Date(dateFrom) : null,
+  );
+  request.input(
+    "ORDER_DATE_TO",
+    sql.DateTime,
+    dateTo ? new Date(dateTo) : null,
+  );
+  request.input("Order_No", sql.VarChar(50), orderNo || null);
+
+  const result = await request.execute("SP_GET_PH_PrescriptionOrders");
 
   return (result.recordset || []).map((row) => ({
-    orderNo: row.orderNo || row.ORDER_NO || row.OrderNo || "",
-    orderDate: row.orderDate || row.ORDER_DATE || row.OrderDate || "",
-    doctor: row.doctor || row.DOCTOR_NAME || row.Doctor || "",
-    department: row.department || row.DEPARTMENT || row.DEPARTMENT_NAME || "",
-    status: row.status || row.STATUS || "",
-    itemsCount:
-      row.itemsCount ||
-      row.ITEMS_COUNT ||
-      row.ITEM_COUNT ||
-      row.COUNT_ITEMS ||
-      0,
-    patientCode: row.patientCode || row.PATIENT_CODE || "",
-    sectionName: row.sectionName || row.SECTION_NAME || "",
+    orderNo: row.ORDER_NO || "",
+    orderDate: row.ORDER_DATE || "",
+    patientCode: row.PATIENT_CODE || "",
+    patientName: row.PATIENT_NAME || "",
+    sectionName: row.SECTION_NAME || "",
+    doctor: row.DOCTOR_NAME || "",
+    department: row.SECTION_NAME || "",
+    status: row.STATUS || "Active",
+    itemsCount: row.ITEMS_COUNT || 0,
   }));
 }
 
 // =========================
-// Still mock for now
-// Replace later when you have SP
+// Quick search by order no
+// reuses SP_GET_PH_PrescriptionOrders
 // =========================
-const mockDetails = {
-  "ORD-1001": [
-    {
-      id: "ORD-1001-1",
-      itemCode: "MED-001",
-      itemName: "Paracetamol 500 mg",
-      dose: "1 Tablet",
-      frequency: "Every 8 Hours",
-      duration: "5 Days",
-      quantity: 15,
-      notes: "After meals",
-      savedByUserCode: null,
-      savedByUserName: null,
-      savedAt: null,
-    },
-  ],
-};
+async function spGetOrderByNo(orderNo) {
+  const rows = await spSearchOrders({
+    patientCode: "",
+    dateFrom: "",
+    dateTo: "",
+    sections: [],
+    orderNo,
+  });
 
-async function spGetOrderDetails(orderNo) {
-  return mockDetails[orderNo] || [];
+  return rows[0] || null;
 }
 
+// =========================
+// Order details
+// SP_GET_PH_PrescriptionOrderDetails
+// =========================
+async function spGetOrderDetails(orderNo) {
+  const pool = await getPool();
+
+  const result = await pool
+    .request()
+    .input("ORDER_NO", sql.VarChar(50), orderNo)
+    .execute("SP_GET_PH_PrescriptionOrderDetails");
+
+  return (result.recordset || []).map((row) => ({
+    id: `${row.ORDER_NO}-${row.SEQUENCE_NO}`,
+    sequenceNo: row.SEQUENCE_NO,
+    orderNo: row.ORDER_NO,
+    orderDate: row.ORDER_DATE,
+    medicationCode: row.MEDICATION_CODE,
+    medicationName: row.MEDICATION_NAME,
+    actionDate: row.PRESCRIPTION_ACTION_DATE || "-",
+    endDate: row.PRESCRIPTION_END_DATE || "-",
+
+    savedByUserCode: row.Recipient_code || null,
+    savedByUserName: row.Recipient_name || null,
+    savedAt: row.Recipient_at || null,
+  }));
+}
+
+// =========================
+// Save recipient info
+// SP_UPDATE_PH_PrescriptionOrderRecipient
+// =========================
 async function spSaveOrderItems({
   orderNo,
   selectedItems,
   userCode,
   password,
-} = {}) {
-  if (userCode !== "admin" || password !== "1234") {
-    const error = new Error("User code or password is incorrect.");
-    error.statusCode = 401;
-    throw error;
-  }
-
-  const userNameMap = {
-    admin: "System Administrator",
-    doctor1: "Dr. Ahmed Hassan",
-    nurse1: "Nurse Mona Ali",
-  };
-
-  const orderDetails = mockDetails[orderNo];
-
-  if (!orderDetails) {
-    const error = new Error("Order not found.");
-    error.statusCode = 404;
-    throw error;
-  }
-
+}) {
   if (!Array.isArray(selectedItems) || selectedItems.length === 0) {
     const error = new Error("Please select at least one item.");
     error.statusCode = 400;
     throw error;
   }
 
-  const selectedRows = orderDetails.filter((item) =>
-    selectedItems.includes(item.itemCode),
+  // 1) Verify user first
+  const verifiedUser = await spVerifyRecipientUser(userCode, password);
+
+  if (!verifiedUser) {
+    const error = new Error("User code or password is incorrect.");
+    error.statusCode = 401;
+    throw error;
+  }
+
+  // 2) Load order details
+  const details = await spGetOrderDetails(orderNo);
+
+  if (!details.length) {
+    const error = new Error("Order not found.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  // 3) Find selected rows
+  const selectedRows = details.filter(
+    (item) =>
+      selectedItems.includes(item.id) || selectedItems.includes(item.itemCode),
   );
 
-  if (selectedRows.length === 0) {
+  if (!selectedRows.length) {
     const error = new Error("No valid items selected.");
     error.statusCode = 400;
     throw error;
   }
 
+  // 4) Prevent re-saving rows already received
   const alreadySavedItems = selectedRows.filter(
     (item) => item.savedByUserCode || item.savedAt,
   );
@@ -497,27 +519,63 @@ async function spSaveOrderItems({
     throw error;
   }
 
-  const now = new Date().toISOString();
+  // 5) Update each selected row
+  const pool = await getPool();
 
-  selectedRows.forEach((item) => {
-    item.savedByUserCode = userCode;
-    item.savedByUserName = userNameMap[userCode] || userCode;
-    item.savedAt = now;
-  });
+  for (const row of selectedRows) {
+    await pool
+      .request()
+      .input("SEQUENCE_NO", sql.Int, row.sequenceNo)
+      .input("ORDER_NO", sql.VarChar(50), orderNo)
+      .input("Recipient_code", sql.VarChar(50), verifiedUser.userCode)
+      .input("Recipient_name", sql.VarChar(100), verifiedUser.userName)
+      .input("Recipient_at", sql.DateTime, new Date())
+      .execute("SP_UPDATE_PH_PrescriptionOrderRecipient");
+  }
+
+  // 6) Reload fresh details
+  const refreshedDetails = await spGetOrderDetails(orderNo);
 
   return {
     success: true,
     orderNo,
     savedCount: selectedRows.length,
     message: `Saved ${selectedRows.length} item(s) successfully.`,
-    details: orderDetails,
+    details: refreshedDetails,
+  };
+}
+async function spVerifyRecipientUser(userCode, password) {
+  const pool = await getPool();
+
+  const result = await pool
+    .request()
+    .input("USER_CODE", sql.VarChar(50), userCode)
+    .input("USER_PASSWORD", sql.VarChar(100), password)
+    .execute("SP_CHECK_PH_USER_PW");
+
+  const row = result.recordset?.[0];
+
+  if (!row) return null;
+
+  const isValid =
+    row.IS_VALID === 1 ||
+    row.IS_VALID === true ||
+    row.isValid === 1 ||
+    row.isValid === true;
+
+  if (!isValid) return null;
+
+  return {
+    userCode: row.USER_CODE || userCode,
+    userName: row.USER_NAME || row.USER_FULL_NAME || userCode,
   };
 }
 
 module.exports = {
   spGetPatientByCode,
+  spGetSections,
   spSearchOrders,
+  spGetOrderByNo,
   spGetOrderDetails,
   spSaveOrderItems,
-  spGetSections,
 };

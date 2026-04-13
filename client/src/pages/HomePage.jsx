@@ -8,6 +8,7 @@ import {
   saveOrderItems,
   searchOrders,
   getSections,
+  getOrderByNo,
 } from "../api/prescriptionOrdersApi";
 import TableSpinner from "../components/TableSpinner";
 import TableEmptyState from "../components/TableEmptyState";
@@ -267,7 +268,9 @@ export default function PrescriptionOrdersPage() {
       showMessage("Patient not found.", "error");
     },
   });
-
+  const orderByNoMutation = useMutation({
+    mutationFn: getOrderByNo,
+  });
   const ordersMutation = useMutation({
     mutationFn: searchOrders,
     onSuccess: (data) => {
@@ -392,50 +395,66 @@ export default function PrescriptionOrdersPage() {
     const orderNo = orderSearch.trim();
 
     if (!orderNo) {
-      // setMessage({ text: "Please enter an order number.", type: "error" });
       showMessage("Please enter an order number.", "error");
-
       return;
     }
 
-    detailsMutation.mutate(orderNo, {
-      onSuccess: () => {
-        // setMessage({
-        //   text: `Showing details for order ${orderNo}.`,
-        //   type: "success",
-        // });
-        showMessage(`Showing details for order ${orderNo}.`, "success");
-      },
-    });
+    try {
+      const [orderRow, orderDetails] = await Promise.all([
+        orderByNoMutation.mutateAsync(orderNo),
+        detailsMutation.mutateAsync(orderNo),
+      ]);
+
+      setOrders(orderRow ? [orderRow] : []);
+      setSelectedOrderNo(orderNo);
+      setDetails(orderDetails || []);
+      setSelectedItems([]);
+      setHasSearchedOrders(true);
+      setHasLoadedDetails(true);
+
+      showMessage(`Showing details for order ${orderNo}.`, "success");
+    } catch (error) {
+      setOrders([]);
+      setDetails([]);
+      setSelectedOrderNo("");
+      setSelectedItems([]);
+      setHasSearchedOrders(true);
+      setHasLoadedDetails(true);
+
+      showMessage(
+        error?.response?.data?.message || "Order number not found.",
+        "error",
+      );
+    }
   }
 
-  function toggleItem(itemCode) {
-    const item = details.find((d) => d.itemCode === itemCode);
+  function toggleItem(itemId) {
+    const item = details.find((d) => d.id === itemId);
 
     if (!item || isItemAlreadySaved(item)) return;
 
     setSelectedItems((prev) =>
-      prev.includes(itemCode)
-        ? prev.filter((code) => code !== itemCode)
-        : [...prev, itemCode],
+      prev.includes(itemId)
+        ? prev.filter((id) => id !== itemId)
+        : [...prev, itemId],
     );
   }
 
   function toggleAll() {
     const availableItems = details.filter((item) => !isItemAlreadySaved(item));
-    const availableCodes = availableItems.map((item) => item.itemCode);
+    const availableIds = availableItems.map((item) => item.id);
 
     if (
-      availableCodes.length > 0 &&
-      availableCodes.every((code) => selectedItems.includes(code))
+      availableIds.length > 0 &&
+      availableIds.every((id) => selectedItems.includes(id))
     ) {
       setSelectedItems((prev) =>
-        prev.filter((code) => !availableCodes.includes(code)),
+        prev.filter((id) => !availableIds.includes(id)),
       );
       return;
     }
 
-    setSelectedItems(availableCodes);
+    setSelectedItems(availableIds);
   }
 
   async function handleConfirmSave({ userCode, password }) {
@@ -477,10 +496,9 @@ export default function PrescriptionOrdersPage() {
   const allSelected = useMemo(() => {
     return (
       selectableItems.length > 0 &&
-      selectableItems.every((item) => selectedItems.includes(item.itemCode))
+      selectableItems.every((item) => selectedItems.includes(item.id))
     );
   }, [selectableItems, selectedItems]);
-
   const ordersCount = orders.length;
   const detailsCount = details.length;
   const selectedCount = selectedItems.length;
@@ -759,13 +777,12 @@ export default function PrescriptionOrdersPage() {
                     {" "}
                     <tr className="bg-[#f4ece8] text-xs uppercase tracking-wide text-[#6d4c41]">
                       {" "}
-                      <th className="p-3">Code</th>
-                      <th className="p-3">Name</th>
-                      <th className="p-3">Dose</th>
-                      <th className="p-3">Frequency</th>
-                      <th className="p-3">Duration</th>
-                      <th className="p-3">Qty</th>
-                      <th className="p-3">Notes</th>
+                      <th className="p-3">Order .No</th>
+                      <th className="p-3">Order Date</th>
+                      <th className="p-3">Medication Code</th>
+                      <th className="p-3">Medication Name</th>
+                      <th className="p-3">Action Date</th>
+                      <th className="p-3">End Date</th>
                       <th className="p-3">Saved By Code</th>
                       <th className="p-3">Saved By Name</th>
                       <th className="p-3">Saved At</th>
@@ -813,47 +830,42 @@ export default function PrescriptionOrdersPage() {
                     ) : (
                       details.map((d) => (
                         <tr
-                          key={d.itemCode}
-                          onClick={() => toggleItem(d.itemCode)}
+                          key={d.id}
+                          onClick={() => toggleItem(d.id)}
                           className={`h-[56px]  cursor-pointer border-b transition-all duration-150
   ${
     isItemAlreadySaved(d)
       ? "bg-[#f7f1ee] text-[#8d6e63] cursor-not-allowed"
-      : selectedItems.includes(d.itemCode)
+      : selectedItems.includes(d.id)
         ? "bg-[rgba(21,98,160,0.12)] border-l-[4px] border-l-[rgb(21,98,160)]"
         : "hover:bg-gray-50"
   }
 `}
                         >
-                          <td className="p-3 whitespace-nowrap">
-                            {d.itemCode}
-                          </td>
+                          <td className="p-3 whitespace-nowrap">{d.orderNo}</td>
                           <td className="p-3 max-w-[220px] truncate">
-                            {d.itemName}
-                          </td>
-                          <td className="p-3 whitespace-nowrap">{d.dose}</td>
-                          <td className="p-3 whitespace-nowrap">
-                            {d.frequency}
+                            {d.orderDate}
                           </td>
                           <td className="p-3 whitespace-nowrap">
-                            {d.duration}
+                            {d.medicationCode}
                           </td>
                           <td className="p-3 whitespace-nowrap">
-                            {d.quantity}
+                            {d.medicationName}
                           </td>
-                          <td className="p-3 max-w-[240px] truncate">
-                            {d.notes || "-"}
+                          <td className="p-3 whitespace-nowrap">
+                            {d.actionDate}
                           </td>
+                          <td className="p-3 whitespace-nowrap">{d.endDate}</td>
                           <td className="p-3">{d.savedByUserCode || "-"}</td>
                           <td className="p-3">{d.savedByUserName || "-"}</td>
                           <td className="p-3">{formatDate(d.savedAt)}</td>{" "}
                           <td className="p-3 text-center">
                             <input
                               type="checkbox"
-                              checked={selectedItems.includes(d.itemCode)}
+                              checked={selectedItems.includes(d.id)}
                               disabled={isItemAlreadySaved(d)}
                               onClick={(e) => e.stopPropagation()} // ✅ prevent row click
-                              onChange={() => toggleItem(d.itemCode)}
+                              onChange={() => toggleItem(d.id)}
                               className="h-[18px] w-[18px] accent-[#6d4c41] disabled:cursor-not-allowed disabled:opacity-50"
                             />
                           </td>

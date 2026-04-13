@@ -6,6 +6,10 @@ async function getPatientByCode(patientCode) {
 async function searchOrders(filters) {
   return db.spSearchOrders(filters);
 }
+
+async function getOrderByNo(orderNo) {
+  return db.spGetOrderByNo(orderNo);
+}
 async function getOrderDetails(orderNo) {
   return db.spGetOrderDetails(orderNo);
 }
@@ -22,4 +26,5 @@ module.exports = {
   getOrderDetails,
   saveOrderItems,
   getSections,
+  getOrderByNo,
 };

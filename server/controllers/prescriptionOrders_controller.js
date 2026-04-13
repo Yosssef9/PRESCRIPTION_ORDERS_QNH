@@ -81,6 +81,20 @@ async function searchOrders(req, res, next) {
     next(error);
   }
 }
+async function getOrderByNo(req, res, next) {
+  try {
+    const { orderNo } = req.params;
+    const data = await service.getOrderByNo(orderNo);
+
+    if (!data) {
+      return res.status(404).json({ message: "Order not found." });
+    }
+
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+}
 async function getOrderDetails(req, res, next) {
   try {
     const { orderNo } = req.params;
@@ -111,4 +125,5 @@ module.exports = {
   getOrderDetails,
   getSections,
   saveOrderItems,
+  getOrderByNo,
 };
