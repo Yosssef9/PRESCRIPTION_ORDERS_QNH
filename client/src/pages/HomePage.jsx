@@ -18,7 +18,10 @@ import { formatDate } from "../helpers/formatDate";
 import { Filter, BarChart } from "lucide-react";
 import SearchableMultiSelect from "../components/SearchableMultiSelect";
 import getTodayDateString from "../helpers/getTodayDateString";
+
 import { useNavigate } from "react-router-dom";
+import compareValues from "../helpers/compareValues";
+import renderSortArrow from "../helpers/renderSortArrow";
 const statusClassMap = {
   Active: "bg-emerald-50 text-emerald-700",
   Pending: "bg-amber-50 text-amber-700",
@@ -217,6 +220,46 @@ export default function PrescriptionOrdersPage() {
   const [sections, setSections] = useState([]);
   const [selectedSections, setSelectedSections] = useState([]);
   const [sectionsLoading, setSectionsLoading] = useState(false);
+  const [ordersSort, setOrdersSort] = useState({
+    key: "",
+    direction: "asc",
+  });
+
+  const [detailsSort, setDetailsSort] = useState({
+    key: "",
+    direction: "asc",
+  });
+  function handleOrdersSort(columnKey) {
+    setOrdersSort((prev) => {
+      if (prev.key === columnKey) {
+        return {
+          key: columnKey,
+          direction: prev.direction === "asc" ? "desc" : "asc",
+        };
+      }
+
+      return {
+        key: columnKey,
+        direction: "asc",
+      };
+    });
+  }
+
+  function handleDetailsSort(columnKey) {
+    setDetailsSort((prev) => {
+      if (prev.key === columnKey) {
+        return {
+          key: columnKey,
+          direction: prev.direction === "asc" ? "desc" : "asc",
+        };
+      }
+
+      return {
+        key: columnKey,
+        direction: "asc",
+      };
+    });
+  }
   const navigate = useNavigate();
   useEffect(() => {
     let isMounted = true;
@@ -599,7 +642,21 @@ export default function PrescriptionOrdersPage() {
 
     return details;
   }, [details, detailsFilter]);
+  const sortedDetails = useMemo(() => {
+    if (!detailsSort.key) return filteredDetails;
 
+    const cloned = [...filteredDetails];
+
+    cloned.sort((a, b) =>
+      compareValues(
+        a[detailsSort.key],
+        b[detailsSort.key],
+        detailsSort.direction,
+      ),
+    );
+
+    return cloned;
+  }, [filteredDetails, detailsSort]);
   const selectableItems = filteredDetails.filter(
     (item) => !isItemAlreadySaved(item),
   );
@@ -610,7 +667,17 @@ export default function PrescriptionOrdersPage() {
       selectableItems.every((item) => selectedItems.includes(item.id))
     );
   }, [selectableItems, selectedItems]);
+  const sortedOrders = useMemo(() => {
+    if (!ordersSort.key) return orders;
 
+    const cloned = [...orders];
+
+    cloned.sort((a, b) =>
+      compareValues(a[ordersSort.key], b[ordersSort.key], ordersSort.direction),
+    );
+
+    return cloned;
+  }, [orders, ordersSort]);
   const ordersCount = orders.length;
   const detailsCount = details.length;
   const selectedCount = selectedItems.length;
@@ -781,11 +848,30 @@ export default function PrescriptionOrdersPage() {
                   <thead className="sticky top-0 z-10 bg-[#f4ece8]">
                     {" "}
                     <tr className="bg-[#f4ece8] text-xs uppercase tracking-wide text-[#6d4c41]">
-                      {" "}
-                      <th className="p-3">Order No.</th>
-                      <th className="p-3">Date</th>
-                      <th className="p-3">Doctor</th>
-                      <th className="p-3">Section</th>
+                      <th
+                        className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                        onClick={() => handleOrdersSort("orderNo")}
+                      >
+                        Order No. {renderSortArrow(ordersSort, "orderNo")}
+                      </th>
+                      <th
+                        className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                        onClick={() => handleOrdersSort("orderDate")}
+                      >
+                        Date {renderSortArrow(ordersSort, "orderDate")}
+                      </th>
+                      <th
+                        className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                        onClick={() => handleOrdersSort("doctor")}
+                      >
+                        Doctor {renderSortArrow(ordersSort, "doctor")}
+                      </th>
+                      <th
+                        className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                        onClick={() => handleOrdersSort("sectionName")}
+                      >
+                        Section {renderSortArrow(ordersSort, "sectionName")}
+                      </th>
                     </tr>
                   </thead>
 
@@ -830,7 +916,7 @@ export default function PrescriptionOrdersPage() {
                           </td>
                         </tr>
                       ) : (
-                        orders.map((o) => {
+                        sortedOrders.map((o) => {
                           const isActive = selectedOrderNo === o.orderNo;
 
                           return (
@@ -918,16 +1004,64 @@ export default function PrescriptionOrdersPage() {
                   <thead className="sticky top-0 z-10 bg-[#f4ece8]">
                     {" "}
                     <tr className="bg-[#f4ece8] text-xs uppercase tracking-wide text-[#6d4c41]">
-                      {" "}
-                      <th className="p-3">Order .No</th>
-                      <th className="p-3">Order Date</th>
-                      <th className="p-3">Medication Code</th>
-                      <th className="p-3">Medication Name</th>
-                      <th className="p-3">Action Date</th>
-                      <th className="p-3">End Date</th>
-                      <th className="p-3">Saved By Code</th>
-                      <th className="p-3">Saved By Name</th>
-                      <th className="p-3">Saved At</th>
+                      <th
+                        className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                        onClick={() => handleDetailsSort("orderNo")}
+                      >
+                        Order No. {renderSortArrow(detailsSort, "orderNo")}
+                      </th>
+                      <th
+                        className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                        onClick={() => handleDetailsSort("orderDate")}
+                      >
+                        Order Date {renderSortArrow(detailsSort, "orderDate")}
+                      </th>
+                      <th
+                        className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                        onClick={() => handleDetailsSort("medicationCode")}
+                      >
+                        Medication Code{" "}
+                        {renderSortArrow(detailsSort, "medicationCode")}
+                      </th>
+                      <th
+                        className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                        onClick={() => handleDetailsSort("medicationName")}
+                      >
+                        Medication Name{" "}
+                        {renderSortArrow(detailsSort, "medicationName")}
+                      </th>
+                      <th
+                        className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                        onClick={() => handleDetailsSort("actionDate")}
+                      >
+                        Action Date {renderSortArrow(detailsSort, "actionDate")}
+                      </th>
+                      <th
+                        className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                        onClick={() => handleDetailsSort("endDate")}
+                      >
+                        End Date {renderSortArrow(detailsSort, "endDate")}
+                      </th>
+                      <th
+                        className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                        onClick={() => handleDetailsSort("savedByUserCode")}
+                      >
+                        Saved By Code{" "}
+                        {renderSortArrow(detailsSort, "savedByUserCode")}
+                      </th>
+                      <th
+                        className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                        onClick={() => handleDetailsSort("savedByUserName")}
+                      >
+                        Saved By Name{" "}
+                        {renderSortArrow(detailsSort, "savedByUserName")}
+                      </th>
+                      <th
+                        className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                        onClick={() => handleDetailsSort("savedAt")}
+                      >
+                        Saved At {renderSortArrow(detailsSort, "savedAt")}
+                      </th>
                       <th className="p-3 text-center">
                         <input
                           type="checkbox"
@@ -974,7 +1108,7 @@ export default function PrescriptionOrdersPage() {
                         </td>
                       </tr>
                     ) : (
-                      filteredDetails.map((d) => (
+                      sortedDetails.map((d) => (
                         <tr
                           key={d.id}
                           onClick={() => toggleItem(d.id)}
