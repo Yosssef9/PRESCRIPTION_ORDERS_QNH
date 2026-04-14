@@ -259,6 +259,23 @@ export default function PrescriptionOrdersPage() {
       toast.error(text);
     }
   }
+  function handleClearAll() {
+    setPatientCode("");
+    setPatientName("");
+    setDateFrom("");
+    setDateTo("");
+    setOrderSearch("");
+    setOrders([]);
+    setSelectedOrderNo("");
+    setDetails([]);
+    setSelectedItems([]);
+    setMessage({ text: "", type: "" });
+    setIsModalOpen(false);
+    setDetailsFilter("all");
+    setHasSearchedOrders(false);
+    setHasLoadedDetails(false);
+    setSelectedSections([]);
+  }
   const syncMutation = useMutation({
     mutationFn: syncOrdersFromOracle,
     onSuccess: (result) => {
@@ -696,13 +713,26 @@ export default function PrescriptionOrdersPage() {
                 />
               </div>
               {/* Search Button */}
-              <div className="flex items-end">
+              <div className="flex items-end gap-2">
                 <button
                   onClick={handleSearchOrders}
                   disabled={ordersMutation.isPending}
-                  className="h-[46px] w-full rounded-xl bg-gradient-to-br from-[#5d4037] to-[#795548] px-[18px] text-sm font-bold text-white disabled:opacity-60"
+                  className="h-[46px] rounded-xl bg-gradient-to-br from-[#5d4037] to-[#795548] px-[18px] text-sm font-bold text-white disabled:opacity-60"
                 >
                   Search
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleClearAll}
+                  disabled={
+                    ordersMutation.isPending ||
+                    detailsMutation.isPending ||
+                    saveMutation.isPending
+                  }
+                  className="h-[46px] rounded-xl border border-[#d7ccc8] bg-white px-[18px] text-sm font-bold text-[#5d4037] transition hover:bg-[#f7f1ee] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Clear All
                 </button>
               </div>
             </div>
