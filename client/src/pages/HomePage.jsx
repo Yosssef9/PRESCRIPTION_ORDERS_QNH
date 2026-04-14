@@ -914,7 +914,7 @@ export default function PrescriptionOrdersPage() {
                   </button>
                 </div>
               </div>
-              <div className="h-[420px] overflow-y-auto overflow-x-auto rounded-[14px] border border-[#d7ccc8]">
+              <div className="max-h-[420px] overflow-auto rounded-[14px] border border-[#d7ccc8]">
                 {" "}
                 <table className="w-full min-w-[1100px] text-left">
                   <thead className="sticky top-0 z-10 bg-[#f4ece8]">
