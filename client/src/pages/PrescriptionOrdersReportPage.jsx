@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-
+import compareValues from "../helpers/compareValues";
+import renderSortArrow from "../helpers/renderSortArrow";
 import {
   getSections,
   searchOrdersReport,
@@ -33,7 +34,25 @@ export default function PrescriptionOrdersReportPage() {
   const [rows, setRows] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [sectionsLoading, setSectionsLoading] = useState(false);
+  const [reportSort, setReportSort] = useState({
+    key: "",
+    direction: "asc",
+  });
+  function handleReportSort(columnKey) {
+    setReportSort((prev) => {
+      if (prev.key === columnKey) {
+        return {
+          key: columnKey,
+          direction: prev.direction === "asc" ? "desc" : "asc",
+        };
+      }
 
+      return {
+        key: columnKey,
+        direction: "asc",
+      };
+    });
+  }
   const navigate = useNavigate();
 
   function showMessage(text, type = "success") {
@@ -87,6 +106,17 @@ export default function PrescriptionOrdersReportPage() {
 
     patientMutation.mutate(code);
   }
+  const sortedRows = useMemo(() => {
+    if (!reportSort.key) return rows;
+
+    const cloned = [...rows];
+
+    cloned.sort((a, b) =>
+      compareValues(a[reportSort.key], b[reportSort.key], reportSort.direction),
+    );
+
+    return cloned;
+  }, [rows, reportSort]);
   const reportMutation = useMutation({
     mutationFn: searchOrdersReport,
     onSuccess: (data) => {
@@ -420,19 +450,98 @@ export default function PrescriptionOrdersReportPage() {
               <table className="w-full min-w-[1600px] text-left">
                 <thead className="sticky top-0 z-10 bg-[#f4ece8]">
                   <tr className="text-xs uppercase tracking-wide text-[#6d4c41]">
-                    <th className="p-3">Order No.</th>
-                    <th className="p-3">Order Date</th>
-                    <th className="p-3">Doctor</th>
-                    <th className="p-3">Section</th>
-                    <th className="p-3">Patient Code</th>
-                    <th className="p-3">Patient Name</th>
-                    <th className="p-3">Medication Code</th>
-                    <th className="p-3">Medication Name</th>
-                    <th className="p-3">Action Date</th>
-                    <th className="p-3">End Date</th>
-                    <th className="p-3">Saved By Code</th>
-                    <th className="p-3">Saved By Name</th>
-                    <th className="p-3">Saved At</th>
+                    <th
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      onClick={() => handleReportSort("orderNo")}
+                    >
+                      Order No. {renderSortArrow(reportSort, "orderNo")}
+                    </th>
+
+                    <th
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      onClick={() => handleReportSort("orderDate")}
+                    >
+                      Order Date {renderSortArrow(reportSort, "orderDate")}
+                    </th>
+
+                    <th
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      onClick={() => handleReportSort("doctor")}
+                    >
+                      Doctor {renderSortArrow(reportSort, "doctor")}
+                    </th>
+
+                    <th
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      onClick={() => handleReportSort("sectionName")}
+                    >
+                      Section {renderSortArrow(reportSort, "sectionName")}
+                    </th>
+
+                    <th
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      onClick={() => handleReportSort("patientCode")}
+                    >
+                      Patient Code {renderSortArrow(reportSort, "patientCode")}
+                    </th>
+
+                    <th
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      onClick={() => handleReportSort("patientName")}
+                    >
+                      Patient Name {renderSortArrow(reportSort, "patientName")}
+                    </th>
+
+                    <th
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      onClick={() => handleReportSort("medicationCode")}
+                    >
+                      Medication Code{" "}
+                      {renderSortArrow(reportSort, "medicationCode")}
+                    </th>
+
+                    <th
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      onClick={() => handleReportSort("medicationName")}
+                    >
+                      Medication Name{" "}
+                      {renderSortArrow(reportSort, "medicationName")}
+                    </th>
+
+                    <th
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      onClick={() => handleReportSort("actionDate")}
+                    >
+                      Action Date {renderSortArrow(reportSort, "actionDate")}
+                    </th>
+
+                    <th
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      onClick={() => handleReportSort("endDate")}
+                    >
+                      End Date {renderSortArrow(reportSort, "endDate")}
+                    </th>
+
+                    <th
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      onClick={() => handleReportSort("savedByCode")}
+                    >
+                      Saved By Code {renderSortArrow(reportSort, "savedByCode")}
+                    </th>
+
+                    <th
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      onClick={() => handleReportSort("savedByName")}
+                    >
+                      Saved By Name {renderSortArrow(reportSort, "savedByName")}
+                    </th>
+
+                    <th
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      onClick={() => handleReportSort("savedAt")}
+                    >
+                      Saved At {renderSortArrow(reportSort, "savedAt")}
+                    </th>
                   </tr>
                 </thead>
 
@@ -462,7 +571,7 @@ export default function PrescriptionOrdersReportPage() {
                       </td>
                     </tr>
                   ) : (
-                    rows.map((row, index) => (
+                    sortedRows.map((row, index) => (
                       <tr
                         key={`${row.orderNo}-${row.medicationCode}-${index}`}
                         className="border-b hover:bg-gray-50"
