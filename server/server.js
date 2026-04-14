@@ -38,12 +38,12 @@ app.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);
 });
 
-// (async () => {
-//   try {
-//     await getPool();
-//     console.log("🚀 App ready with DB connection");
-//   } catch (err) {
-//     console.error("❌ App failed to start due to DB error");
-//     process.exit(1);
-//   }
-// })();
+(async () => {
+  try {
+    await getPool();
+    console.log("🚀 App ready with DB connection");
+  } catch (err) {
+    console.error("❌ App failed to start due to DB error");
+    process.exit(1);
+  }
+})();
