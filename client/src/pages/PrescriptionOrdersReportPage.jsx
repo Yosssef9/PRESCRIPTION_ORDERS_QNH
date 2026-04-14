@@ -158,6 +158,7 @@ export default function PrescriptionOrdersReportPage() {
       sections: selectedSections,
       orderNo,
       medicationCode,
+      medicationName,
       actionDateFrom,
       actionDateTo,
       savedByCode,

@@ -594,6 +594,7 @@ async function spSearchOrdersReport({
   sections = [],
   orderNo = null,
   medicationCode = null,
+  medicationName = null,
   actionDateFrom = null,
   actionDateTo = null,
   savedByCode = null,
@@ -612,6 +613,7 @@ async function spSearchOrdersReport({
   );
 
   request.input("MEDICATION_CODE", sql.NVarChar(50), medicationCode || null);
+  request.input("MEDICATION_NAME", sql.NVarChar(200), medicationName || null);
 
   request.input(
     "ORDER_DATE_FROM",
@@ -619,11 +621,7 @@ async function spSearchOrdersReport({
     dateFrom ? new Date(dateFrom) : null,
   );
 
-  request.input(
-    "ORDER_DATE_TO",
-    sql.Date,
-    dateTo ? new Date(dateTo) : null,
-  );
+  request.input("ORDER_DATE_TO", sql.Date, dateTo ? new Date(dateTo) : null);
 
   request.input(
     "PRESCRIPTION_ACTION_FROM",
@@ -637,10 +635,12 @@ async function spSearchOrdersReport({
     actionDateTo ? new Date(actionDateTo) : null,
   );
 
-  request.input("SAVED_BY_CODE", sql.NVarChar(50), savedByCode || null);
-  request.input("SAVED_BY_NAME", sql.NVarChar(200), savedByName || null);
+  request.input("Recipient_code", sql.NVarChar(50), savedByCode || null);
+  request.input("Recipient_name", sql.NVarChar(200), savedByName || null);
 
-  const result = await request.execute("SP_SEARCH_PH_PrescriptionOrders_Result");
+  const result = await request.execute(
+    "SP_SEARCH_PH_PrescriptionOrders_Result",
+  );
 
   return (result.recordset || []).map((row) => ({
     orderNo: row.ORDER_NO || "",
@@ -659,7 +659,6 @@ async function spSearchOrdersReport({
   }));
 }
 
-
 module.exports = {
   spGetPatientByCode,
   spGetSections,
@@ -668,5 +667,5 @@ module.exports = {
   spGetOrderDetails,
   spSaveOrderItems,
   spSyncOrdersFromOracle,
-  spSearchOrdersReport
+  spSearchOrdersReport,
 };

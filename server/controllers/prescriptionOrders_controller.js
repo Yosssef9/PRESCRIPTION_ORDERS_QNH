@@ -137,6 +137,7 @@ async function searchOrdersReport(req, res, next) {
       sections = [],
       orderNo = "",
       medicationCode = "",
+      medicationName = "",
       actionDateFrom = "",
       actionDateTo = "",
       savedByCode = "",
@@ -146,6 +147,7 @@ async function searchOrdersReport(req, res, next) {
     patientCode = patientCode.trim();
     orderNo = orderNo.trim();
     medicationCode = medicationCode.trim();
+    medicationName = medicationName.trim();
     savedByCode = savedByCode.trim();
     savedByName = savedByName.trim();
 
@@ -161,6 +163,7 @@ async function searchOrdersReport(req, res, next) {
     const hasSections = sections.length > 0;
     const hasOrderNo = !!orderNo;
     const hasMedicationCode = !!medicationCode;
+    const hasMedicationName = !!medicationName;
     const hasSavedByCode = !!savedByCode;
     const hasSavedByName = !!savedByName;
     const hasOrderDateFrom = !!dateFrom;
@@ -173,6 +176,7 @@ async function searchOrdersReport(req, res, next) {
       hasSections ||
       hasOrderNo ||
       hasMedicationCode ||
+      hasMedicationName ||
       hasSavedByCode ||
       hasSavedByName ||
       hasOrderDateFrom ||
@@ -211,6 +215,7 @@ async function searchOrdersReport(req, res, next) {
       hasSections ||
       hasOrderNo ||
       hasMedicationCode ||
+      hasMedicationName ||
       hasSavedByCode ||
       hasSavedByName;
 
@@ -252,6 +257,7 @@ async function searchOrdersReport(req, res, next) {
       sections,
       orderNo,
       medicationCode,
+      medicationName,
       actionDateFrom,
       actionDateTo,
       savedByCode,
