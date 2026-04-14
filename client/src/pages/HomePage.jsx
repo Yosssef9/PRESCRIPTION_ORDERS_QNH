@@ -451,11 +451,10 @@ export default function PrescriptionOrdersPage() {
     const hasPatientCode = !!trimmedPatientCode;
     const hasFromDate = !!finalDateFrom;
     const hasToDate = !!finalDateTo;
-    const hasSections = selectedSections.length > 0;
 
-    if (!hasPatientCode && !(hasFromDate && hasSections)) {
+    if (!hasPatientCode && !hasFromDate) {
       showMessage(
-        "Please enter Patient Code, or choose From Date with at least one Section before searching.",
+        "Please enter Patient Code or choose From Date before searching.",
         "error",
       );
       return;
@@ -478,7 +477,6 @@ export default function PrescriptionOrdersPage() {
       sections: selectedSections,
     });
   }
-
   async function handleSelectOrder(orderNo) {
     detailsMutation.mutate(orderNo);
   }
