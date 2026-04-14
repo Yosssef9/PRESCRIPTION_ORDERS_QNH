@@ -408,9 +408,6 @@ async function spSearchOrders({
     patientName: row.PATIENT_NAME || "",
     sectionName: row.SECTION_NAME || "",
     doctor: row.DOCTOR_NAME || "",
-    department: row.SECTION_NAME || "",
-    status: row.STATUS || "Active",
-    itemsCount: row.ITEMS_COUNT || 0,
   }));
 }
 
@@ -582,19 +579,11 @@ async function spSyncOrdersFromOracle() {
   return {
     success: true,
     insertedCount:
-      row.INSERTED_COUNT ??
-      row.InsertedCount ??
-      row.insertedCount ??
-      0,
+      row.INSERTED_COUNT ?? row.InsertedCount ?? row.insertedCount ?? 0,
     skippedCount:
-      row.SKIPPED_COUNT ??
-      row.SkippedCount ??
-      row.skippedCount ??
-      0,
+      row.SKIPPED_COUNT ?? row.SkippedCount ?? row.skippedCount ?? 0,
     message:
-      row.MESSAGE ||
-      row.Message ||
-      "Orders sync completed successfully.",
+      row.MESSAGE || row.Message || "Orders sync completed successfully.",
   };
 }
 module.exports = {
@@ -604,5 +593,5 @@ module.exports = {
   spGetOrderByNo,
   spGetOrderDetails,
   spSaveOrderItems,
-  spSyncOrdersFromOracle
+  spSyncOrdersFromOracle,
 };

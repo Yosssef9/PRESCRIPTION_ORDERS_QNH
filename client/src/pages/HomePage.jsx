@@ -319,16 +319,16 @@ export default function PrescriptionOrdersPage() {
 
     initPage();
   }, []);
-  useEffect(() => {
-    const intervalId = setInterval(
-      () => {
-        runOrdersSync(true);
-      },
-      15 * 60 * 1000,
-    );
+  // useEffect(() => {
+  //   const intervalId = setInterval(
+  //     () => {
+  //       runOrdersSync(true);
+  //     },
+  //     15 * 60 * 1000,
+  //   );
 
-    return () => clearInterval(intervalId);
-  }, []);
+  //   return () => clearInterval(intervalId);
+  // }, []);
   const patientMutation = useMutation({
     mutationFn: getPatientByCode,
     onSuccess: (data) => {
@@ -565,12 +565,12 @@ export default function PrescriptionOrdersPage() {
 
     setIsModalOpen(true);
   }
-
-  const selectableItems = details.filter((item) => !isItemAlreadySaved(item));
   const savedCount = details.filter((item) => isItemAlreadySaved(item)).length;
+
   const unsavedCount = details.filter(
     (item) => !isItemAlreadySaved(item),
   ).length;
+
   const filteredDetails = useMemo(() => {
     if (detailsFilter === "saved") {
       return details.filter((item) => isItemAlreadySaved(item));
@@ -582,12 +582,18 @@ export default function PrescriptionOrdersPage() {
 
     return details;
   }, [details, detailsFilter]);
+
+  const selectableItems = filteredDetails.filter(
+    (item) => !isItemAlreadySaved(item),
+  );
+
   const allSelected = useMemo(() => {
     return (
       selectableItems.length > 0 &&
       selectableItems.every((item) => selectedItems.includes(item.id))
     );
   }, [selectableItems, selectedItems]);
+
   const ordersCount = orders.length;
   const detailsCount = details.length;
   const selectedCount = selectedItems.length;
@@ -743,7 +749,6 @@ export default function PrescriptionOrdersPage() {
                       <th className="p-3">Order No.</th>
                       <th className="p-3">Date</th>
                       <th className="p-3">Doctor</th>
-                      <th className="p-3">Department</th>
                       <th className="p-3">Section</th>
                     </tr>
                   </thead>
@@ -809,7 +814,6 @@ export default function PrescriptionOrdersPage() {
                                 {formatDate(o.orderDate)}
                               </td>
                               <td className="p-3">{o.doctor}</td>
-                              <td className="p-3">{o.department}</td>
 
                               <td className="p-3">{o.sectionName}</td>
                             </tr>
