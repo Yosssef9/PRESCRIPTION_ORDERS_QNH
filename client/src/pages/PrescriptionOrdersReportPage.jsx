@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
@@ -11,6 +11,7 @@ import TableSpinner from "../components/TableSpinner";
 import TableEmptyState from "../components/TableEmptyState";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, BarChart } from "lucide-react";
+
 export default function PrescriptionOrdersReportPage() {
   const [patientCode, setPatientCode] = useState("");
   const [patientName, setPatientName] = useState("");
@@ -28,7 +29,9 @@ export default function PrescriptionOrdersReportPage() {
   const [rows, setRows] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [sectionsLoading, setSectionsLoading] = useState(false);
+
   const navigate = useNavigate();
+
   function showMessage(text, type = "success") {
     if (!text) return;
     toast.dismiss();
@@ -187,87 +190,155 @@ export default function PrescriptionOrdersReportPage() {
             </h2>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <input
-                value={patientCode}
-                onChange={(e) => setPatientCode(e.target.value)}
-                placeholder="Patient Code"
-                className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
-              />
-              <input
-                value={patientName}
-                onChange={(e) => setPatientName(e.target.value)}
-                placeholder="Patient Name"
-                className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
-              />
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
-              />
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
-              />
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#6d4c41]">
+                  Patient Code
+                </label>
+                <input
+                  value={patientCode}
+                  onChange={(e) => setPatientCode(e.target.value)}
+                  placeholder="Enter patient code"
+                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                />
+              </div>
 
-              <SearchableMultiSelect
-                name="sections"
-                values={selectedSections}
-                onChange={(e) => setSelectedSections(e.target.value)}
-                options={sections}
-                disabled={sectionsLoading}
-                placeholder="Select sections"
-                searchPlaceholder="Search sections..."
-                noResultsText="No sections found"
-                getOptionLabel={(item) => item.sectionName}
-                getOptionValue={(item) => item.sectionName}
-              />
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#6d4c41]">
+                  Patient Name
+                </label>
+                <input
+                  value={patientName}
+                  onChange={(e) => setPatientName(e.target.value)}
+                  placeholder="Enter patient name"
+                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                />
+              </div>
 
-              <input
-                value={orderNo}
-                onChange={(e) => setOrderNo(e.target.value)}
-                placeholder="Order No."
-                className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
-              />
-              <input
-                value={medicationCode}
-                onChange={(e) => setMedicationCode(e.target.value)}
-                placeholder="Medication Code"
-                className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
-              />
-              <input
-                value={medicationName}
-                onChange={(e) => setMedicationName(e.target.value)}
-                placeholder="Medication Name"
-                className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
-              />
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#6d4c41]">
+                  Order Date From
+                </label>
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                />
+              </div>
 
-              <input
-                type="date"
-                value={actionDate}
-                onChange={(e) => setActionDate(e.target.value)}
-                className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
-              />
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
-              />
-              <input
-                value={savedByCode}
-                onChange={(e) => setSavedByCode(e.target.value)}
-                placeholder="Saved By Code"
-                className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
-              />
-              <input
-                value={savedByName}
-                onChange={(e) => setSavedByName(e.target.value)}
-                placeholder="Saved By Name"
-                className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
-              />
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#6d4c41]">
+                  Order Date To
+                </label>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#6d4c41]">
+                  Sections
+                </label>
+                <SearchableMultiSelect
+                  name="sections"
+                  values={selectedSections}
+                  onChange={(e) => setSelectedSections(e.target.value)}
+                  options={sections}
+                  disabled={sectionsLoading}
+                  placeholder="Select sections"
+                  searchPlaceholder="Search sections..."
+                  noResultsText="No sections found"
+                  getOptionLabel={(item) => item.sectionName}
+                  getOptionValue={(item) => item.sectionName}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#6d4c41]">
+                  Order Number
+                </label>
+                <input
+                  value={orderNo}
+                  onChange={(e) => setOrderNo(e.target.value)}
+                  placeholder="Enter order number"
+                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#6d4c41]">
+                  Medication Code
+                </label>
+                <input
+                  value={medicationCode}
+                  onChange={(e) => setMedicationCode(e.target.value)}
+                  placeholder="Enter medication code"
+                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#6d4c41]">
+                  Medication Name
+                </label>
+                <input
+                  value={medicationName}
+                  onChange={(e) => setMedicationName(e.target.value)}
+                  placeholder="Enter medication name"
+                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#6d4c41]">
+                  Action Date
+                </label>
+                <input
+                  type="date"
+                  value={actionDate}
+                  onChange={(e) => setActionDate(e.target.value)}
+                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#6d4c41]">
+                  End Date
+                </label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#6d4c41]">
+                  Saved By Code
+                </label>
+                <input
+                  value={savedByCode}
+                  onChange={(e) => setSavedByCode(e.target.value)}
+                  placeholder="Enter saved by code"
+                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-[#6d4c41]">
+                  Saved By Name
+                </label>
+                <input
+                  value={savedByName}
+                  onChange={(e) => setSavedByName(e.target.value)}
+                  placeholder="Enter saved by name"
+                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                />
+              </div>
             </div>
 
             <div className="mt-4 flex items-center gap-2">
