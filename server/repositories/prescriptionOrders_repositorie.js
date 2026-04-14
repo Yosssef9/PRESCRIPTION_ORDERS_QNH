@@ -586,6 +586,75 @@ async function spSyncOrdersFromOracle() {
       row.MESSAGE || row.Message || "Orders sync completed successfully.",
   };
 }
+
+async function spSearchOrdersReport({
+  patientCode = null,
+  patientName = null,
+  dateFrom = null,
+  dateTo = null,
+  sections = [],
+  orderNo = null,
+  medicationCode = null,
+  medicationName = null,
+  actionDate = null,
+  endDate = null,
+  savedByCode = null,
+  savedByName = null,
+}) {
+  const pool = await getPool();
+
+  const sectionNameParam =
+    Array.isArray(sections) && sections.length > 0 ? sections[0] : null;
+
+  const request = pool.request();
+
+  request.input("PATIENT_CODE", sql.VarChar(50), patientCode || null);
+  request.input("PATIENT_NAME", sql.VarChar(200), patientName || null);
+  request.input(
+    "ORDER_DATE_FROM",
+    sql.DateTime,
+    dateFrom ? new Date(dateFrom) : null,
+  );
+  request.input(
+    "ORDER_DATE_TO",
+    sql.DateTime,
+    dateTo ? new Date(dateTo) : null,
+  );
+  request.input("SECTION_NAME", sql.VarChar(200), sectionNameParam || null);
+  request.input("ORDER_NO", sql.VarChar(50), orderNo || null);
+  request.input("MEDICATION_CODE", sql.VarChar(50), medicationCode || null);
+  request.input("MEDICATION_NAME", sql.VarChar(200), medicationName || null);
+  request.input(
+    "ACTION_DATE",
+    sql.DateTime,
+    actionDate ? new Date(actionDate) : null,
+  );
+  request.input(
+    "END_DATE",
+    sql.DateTime,
+    endDate ? new Date(endDate) : null,
+  );
+  request.input("SAVED_BY_CODE", sql.VarChar(50), savedByCode || null);
+  request.input("SAVED_BY_NAME", sql.VarChar(200), savedByName || null);
+
+  const result = await request.execute("SP_GET_PH_PrescriptionOrders_Report");
+
+  return (result.recordset || []).map((row) => ({
+    orderNo: row.ORDER_NO || "",
+    orderDate: row.ORDER_DATE || "",
+    doctor: row.DOCTOR_NAME || "",
+    sectionName: row.SECTION_NAME || "",
+    patientCode: row.PATIENT_CODE || "",
+    patientName: row.PATIENT_NAME || "",
+    medicationCode: row.MEDICATION_CODE || "",
+    medicationName: row.MEDICATION_NAME || "",
+    actionDate: row.PRESCRIPTION_ACTION_DATE || "",
+    endDate: row.PRESCRIPTION_END_DATE || "",
+    savedByCode: row.Recipient_code || "",
+    savedByName: row.Recipient_name || "",
+    savedAt: row.Recipient_at || "",
+  }));
+}
 module.exports = {
   spGetPatientByCode,
   spGetSections,
@@ -594,4 +663,5 @@ module.exports = {
   spGetOrderDetails,
   spSaveOrderItems,
   spSyncOrdersFromOracle,
+  spSearchOrdersReport
 };

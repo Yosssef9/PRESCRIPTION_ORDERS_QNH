@@ -15,9 +15,10 @@ import TableSpinner from "../components/TableSpinner";
 import TableEmptyState from "../components/TableEmptyState";
 import toast from "react-hot-toast";
 import { formatDate } from "../helpers/formatDate";
-import { Filter } from "lucide-react";
+import { Filter, BarChart } from "lucide-react";
 import SearchableMultiSelect from "../components/SearchableMultiSelect";
 import getTodayDateString from "../helpers/getTodayDateString";
+import { useNavigate } from "react-router-dom";
 const statusClassMap = {
   Active: "bg-emerald-50 text-emerald-700",
   Pending: "bg-amber-50 text-amber-700",
@@ -216,6 +217,7 @@ export default function PrescriptionOrdersPage() {
   const [sections, setSections] = useState([]);
   const [selectedSections, setSelectedSections] = useState([]);
   const [sectionsLoading, setSectionsLoading] = useState(false);
+  const navigate = useNavigate();
   useEffect(() => {
     let isMounted = true;
 
@@ -620,15 +622,25 @@ export default function PrescriptionOrdersPage() {
       <div className="mx-auto  overflow-hidden rounded-[28px] border border-[rgba(121,85,72,0.14)] bg-[rgba(255,255,255,0.75)] shadow-[0_12px_30px_rgba(78,52,46,0.12)] backdrop-blur-md">
         <div className="flex items-center justify-between bg-gradient-to-br from-[#4e342e] to-[#6d4c41] px-7 py-6 text-white">
           <h1 className="text-[28px] font-bold">Doctors' Medication Orders</h1>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => navigate("/report")}
+              className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/20"
+            >
+              <BarChart className="h-4 w-4" />
+              Reports
+            </button>
 
-          <button
-            type="button"
-            onClick={() => runOrdersSync(false)}
-            disabled={syncMutation.isPending}
-            className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {syncMutation.isPending ? "Refreshing..." : "Refresh Orders"}
-          </button>
+            <button
+              type="button"
+              onClick={() => runOrdersSync(false)}
+              disabled={syncMutation.isPending}
+              className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/20 disabled:opacity-60"
+            >
+              {syncMutation.isPending ? "Refreshing..." : "Refresh Orders"}
+            </button>
+          </div>
         </div>
 
         <div className="p-6">

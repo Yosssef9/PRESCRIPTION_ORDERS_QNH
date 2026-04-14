@@ -127,6 +127,52 @@ async function syncOrdersFromOracle(req, res, next) {
     next(error);
   }
 }
+
+async function searchOrdersReport(req, res, next) {
+  try {
+    let {
+      patientCode = "",
+      patientName = "",
+      dateFrom = "",
+      dateTo = "",
+      sections = [],
+      orderNo = "",
+      medicationCode = "",
+      medicationName = "",
+      actionDate = "",
+      endDate = "",
+      savedByCode = "",
+      savedByName = "",
+    } = req.query;
+
+    if (!Array.isArray(sections)) {
+      sections = sections ? [sections] : [];
+    }
+
+    sections = sections
+      .map((section) => String(section).trim())
+      .filter(Boolean);
+
+    const data = await service.searchOrdersReport({
+      patientCode: patientCode.trim(),
+      patientName: patientName.trim(),
+      dateFrom,
+      dateTo,
+      sections,
+      orderNo: orderNo.trim(),
+      medicationCode: medicationCode.trim(),
+      medicationName: medicationName.trim(),
+      actionDate,
+      endDate,
+      savedByCode: savedByCode.trim(),
+      savedByName: savedByName.trim(),
+    });
+
+    res.json(data);
+  } catch (error) {
+    next(error);
+  }
+}
 module.exports = {
   getPatientByCode,
   searchOrders,
@@ -135,4 +181,5 @@ module.exports = {
   saveOrderItems,
   getOrderByNo,
   syncOrdersFromOracle,
+  searchOrdersReport
 };

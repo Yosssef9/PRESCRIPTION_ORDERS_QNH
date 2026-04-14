@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import HomePage from "../pages/HomePage";
 import LoginRequired from "../pages/LoginRequired";
 import RequireAuth from "../auth/RequireAuth";
+import PrescriptionOrdersReportPage from "../pages/PrescriptionOrdersReportPage";
 
 const router = createBrowserRouter(
   [
@@ -10,6 +11,14 @@ const router = createBrowserRouter(
       element: (
         <RequireAuth>
           <HomePage />
+        </RequireAuth>
+      ),
+    },
+    {
+      path: "/report", // 👈 ADD THIS ROUTE
+      element: (
+        <RequireAuth>
+          <PrescriptionOrdersReportPage />
         </RequireAuth>
       ),
     },

@@ -8,4 +8,5 @@ router.get("/sections", controller.getSections);
 router.get("/orders/:orderNo/details", controller.getOrderDetails);
 router.post("/orders/:orderNo/save", controller.saveOrderItems);
 router.post("/orders/sync", controller.syncOrdersFromOracle);
+router.get("/report", controller.searchOrdersReport);
 module.exports = router;

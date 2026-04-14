@@ -22,6 +22,9 @@ async function getSections() {
 async function syncOrdersFromOracle() {
   return db.spSyncOrdersFromOracle();
 }
+async function searchOrdersReport(filters) {
+  return db.spSearchOrdersReport(filters);
+}
 module.exports = {
   getPatientByCode,
   searchOrders,
@@ -29,5 +32,6 @@ module.exports = {
   saveOrderItems,
   getSections,
   getOrderByNo,
-  syncOrdersFromOracle
+  syncOrdersFromOracle,
+  searchOrdersReport,
 };
