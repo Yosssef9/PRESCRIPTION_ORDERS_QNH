@@ -132,18 +132,22 @@ async function searchOrdersReport(req, res, next) {
   try {
     let {
       patientCode = "",
-      patientName = "",
       dateFrom = "",
       dateTo = "",
       sections = [],
       orderNo = "",
       medicationCode = "",
-      medicationName = "",
-      actionDate = "",
-      endDate = "",
+      actionDateFrom = "",
+      actionDateTo = "",
       savedByCode = "",
       savedByName = "",
     } = req.query;
+
+    patientCode = patientCode.trim();
+    orderNo = orderNo.trim();
+    medicationCode = medicationCode.trim();
+    savedByCode = savedByCode.trim();
+    savedByName = savedByName.trim();
 
     if (!Array.isArray(sections)) {
       sections = sections ? [sections] : [];
@@ -153,19 +157,105 @@ async function searchOrdersReport(req, res, next) {
       .map((section) => String(section).trim())
       .filter(Boolean);
 
+    const hasPatientCode = !!patientCode;
+    const hasSections = sections.length > 0;
+    const hasOrderNo = !!orderNo;
+    const hasMedicationCode = !!medicationCode;
+    const hasSavedByCode = !!savedByCode;
+    const hasSavedByName = !!savedByName;
+    const hasOrderDateFrom = !!dateFrom;
+    const hasOrderDateTo = !!dateTo;
+    const hasActionDateFrom = !!actionDateFrom;
+    const hasActionDateTo = !!actionDateTo;
+
+    const hasAnyFilter =
+      hasPatientCode ||
+      hasSections ||
+      hasOrderNo ||
+      hasMedicationCode ||
+      hasSavedByCode ||
+      hasSavedByName ||
+      hasOrderDateFrom ||
+      hasOrderDateTo ||
+      hasActionDateFrom ||
+      hasActionDateTo;
+
+    if (!hasAnyFilter) {
+      return res.status(400).json({
+        message: "Please enter at least one search filter.",
+      });
+    }
+
+    if (!hasOrderDateFrom && hasOrderDateTo) {
+      return res.status(400).json({
+        message: "Order Date From is required when Order Date To is entered.",
+      });
+    }
+
+    if (!hasActionDateFrom && hasActionDateTo) {
+      return res.status(400).json({
+        message: "Action Date From is required when Action Date To is entered.",
+      });
+    }
+
+    if (hasOrderDateFrom && !hasOrderDateTo) {
+      dateTo = new Date().toISOString().split("T")[0];
+    }
+
+    if (hasActionDateFrom && !hasActionDateTo) {
+      actionDateTo = new Date().toISOString().split("T")[0];
+    }
+
+    const hasNonDateFilters =
+      hasPatientCode ||
+      hasSections ||
+      hasOrderNo ||
+      hasMedicationCode ||
+      hasSavedByCode ||
+      hasSavedByName;
+
+    function diffInDays(from, to) {
+      const fromDate = new Date(from);
+      const toDate = new Date(to);
+      const msPerDay = 1000 * 60 * 60 * 24;
+      return Math.floor((toDate - fromDate) / msPerDay);
+    }
+
+    if (
+      !hasNonDateFilters &&
+      hasOrderDateFrom &&
+      dateTo &&
+      diffInDays(dateFrom, dateTo) > 92
+    ) {
+      return res.status(400).json({
+        message:
+          "When searching by Order Date only, the range must not exceed 3 months.",
+      });
+    }
+
+    if (
+      !hasNonDateFilters &&
+      hasActionDateFrom &&
+      actionDateTo &&
+      diffInDays(actionDateFrom, actionDateTo) > 92
+    ) {
+      return res.status(400).json({
+        message:
+          "When searching by Action Date only, the range must not exceed 3 months.",
+      });
+    }
+
     const data = await service.searchOrdersReport({
-      patientCode: patientCode.trim(),
-      patientName: patientName.trim(),
+      patientCode,
       dateFrom,
       dateTo,
       sections,
-      orderNo: orderNo.trim(),
-      medicationCode: medicationCode.trim(),
-      medicationName: medicationName.trim(),
-      actionDate,
-      endDate,
-      savedByCode: savedByCode.trim(),
-      savedByName: savedByName.trim(),
+      orderNo,
+      medicationCode,
+      actionDateFrom,
+      actionDateTo,
+      savedByCode,
+      savedByName,
     });
 
     res.json(data);
@@ -173,6 +263,7 @@ async function searchOrdersReport(req, res, next) {
     next(error);
   }
 }
+
 module.exports = {
   getPatientByCode,
   searchOrders,
@@ -181,5 +272,5 @@ module.exports = {
   saveOrderItems,
   getOrderByNo,
   syncOrdersFromOracle,
-  searchOrdersReport
+  searchOrdersReport,
 };

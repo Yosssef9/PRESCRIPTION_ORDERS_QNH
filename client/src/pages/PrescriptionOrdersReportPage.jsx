@@ -4,7 +4,11 @@ import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 
-import { getSections, searchOrdersReport } from "../api/prescriptionOrdersApi";
+import {
+  getSections,
+  searchOrdersReport,
+  getPatientByCode,
+} from "../api/prescriptionOrdersApi";
 import { formatDate } from "../helpers/formatDate";
 import SearchableMultiSelect from "../components/SearchableMultiSelect";
 import TableSpinner from "../components/TableSpinner";
@@ -22,8 +26,8 @@ export default function PrescriptionOrdersReportPage() {
   const [orderNo, setOrderNo] = useState("");
   const [medicationCode, setMedicationCode] = useState("");
   const [medicationName, setMedicationName] = useState("");
-  const [actionDate, setActionDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [actionDateFrom, setActionDateFrom] = useState("");
+  const [actionDateTo, setActionDateTo] = useState("");
   const [savedByCode, setSavedByCode] = useState("");
   const [savedByName, setSavedByName] = useState("");
   const [rows, setRows] = useState([]);
@@ -63,7 +67,26 @@ export default function PrescriptionOrdersReportPage() {
       isMounted = false;
     };
   }, []);
+  const patientMutation = useMutation({
+    mutationFn: getPatientByCode,
+    onSuccess: (data) => {
+      setPatientName(data.patientName || "");
+    },
+    onError: () => {
+      setPatientName("");
+      showMessage("Patient not found.", "error");
+    },
+  });
+  async function handlePatientBlur() {
+    const code = patientCode.trim();
 
+    if (!code) {
+      setPatientName("");
+      return;
+    }
+
+    patientMutation.mutate(code);
+  }
   const reportMutation = useMutation({
     mutationFn: searchOrdersReport,
     onSuccess: (data) => {
@@ -81,22 +104,36 @@ export default function PrescriptionOrdersReportPage() {
   });
 
   function handleSearch() {
+    const hasAnyFilter =
+      !!patientCode.trim() ||
+      !!dateFrom ||
+      !!dateTo ||
+      selectedSections.length > 0 ||
+      !!orderNo.trim() ||
+      !!medicationCode.trim() ||
+      !!actionDateFrom ||
+      !!actionDateTo ||
+      !!savedByCode.trim() ||
+      !!savedByName.trim();
+
+    if (!hasAnyFilter) {
+      showMessage("Please enter at least one search filter.", "error");
+      return;
+    }
+
     reportMutation.mutate({
       patientCode,
-      patientName,
       dateFrom,
       dateTo,
       sections: selectedSections,
       orderNo,
       medicationCode,
-      medicationName,
-      actionDate,
-      endDate,
+      actionDateFrom,
+      actionDateTo,
       savedByCode,
       savedByName,
     });
   }
-
   function handleClearAll() {
     setPatientCode("");
     setPatientName("");
@@ -105,9 +142,8 @@ export default function PrescriptionOrdersReportPage() {
     setSelectedSections([]);
     setOrderNo("");
     setMedicationCode("");
-    setMedicationName("");
-    setActionDate("");
-    setEndDate("");
+    setActionDateFrom("");
+    setActionDateTo("");
     setSavedByCode("");
     setSavedByName("");
     setRows([]);
@@ -197,6 +233,13 @@ export default function PrescriptionOrdersReportPage() {
                 <input
                   value={patientCode}
                   onChange={(e) => setPatientCode(e.target.value)}
+                  onBlur={handlePatientBlur}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handlePatientBlur();
+                      e.target.blur();
+                    }
+                  }}
                   placeholder="Enter patient code"
                   className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
                 />
@@ -208,9 +251,9 @@ export default function PrescriptionOrdersReportPage() {
                 </label>
                 <input
                   value={patientName}
-                  onChange={(e) => setPatientName(e.target.value)}
-                  placeholder="Enter patient name"
-                  className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
+                  readOnly
+                  placeholder="Auto-filled"
+                  className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#f7f1ee] px-3 text-sm outline-none"
                 />
               </div>
 
@@ -294,24 +337,24 @@ export default function PrescriptionOrdersReportPage() {
 
               <div className="space-y-1">
                 <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
-                  Action Date
+                  Action Date From
                 </label>
                 <input
                   type="date"
-                  value={actionDate}
-                  onChange={(e) => setActionDate(e.target.value)}
+                  value={actionDateFrom}
+                  onChange={(e) => setActionDateFrom(e.target.value)}
                   className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
                 />
               </div>
 
               <div className="space-y-1">
                 <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
-                  End Date
+                  Action Date To
                 </label>
                 <input
                   type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
+                  value={actionDateTo}
+                  onChange={(e) => setActionDateTo(e.target.value)}
                   className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
                 />
               </div>
