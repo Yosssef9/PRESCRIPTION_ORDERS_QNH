@@ -560,8 +560,8 @@ async function spVerifyRecipientUser(userCode, password) {
   const isValid =
     row.IS_VALID === 1 ||
     row.IS_VALID === true ||
-    row.isValid === 1 ||
-    row.isValid === true;
+    row.IsValid === 1 ||
+    row.IsValid === true;
 
   if (!isValid) return null;
 
@@ -570,7 +570,33 @@ async function spVerifyRecipientUser(userCode, password) {
     userName: row.USER_NAME || row.USER_FULL_NAME || userCode,
   };
 }
+async function spSyncOrdersFromOracle() {
+  const pool = await getPool();
 
+  const result = await pool
+    .request()
+    .execute("SP_Insert_PH_PrescriptionOrders");
+
+  const row = result.recordset?.[0] || {};
+
+  return {
+    success: true,
+    insertedCount:
+      row.INSERTED_COUNT ??
+      row.InsertedCount ??
+      row.insertedCount ??
+      0,
+    skippedCount:
+      row.SKIPPED_COUNT ??
+      row.SkippedCount ??
+      row.skippedCount ??
+      0,
+    message:
+      row.MESSAGE ||
+      row.Message ||
+      "Orders sync completed successfully.",
+  };
+}
 module.exports = {
   spGetPatientByCode,
   spGetSections,
@@ -578,4 +604,5 @@ module.exports = {
   spGetOrderByNo,
   spGetOrderDetails,
   spSaveOrderItems,
+  spSyncOrdersFromOracle
 };

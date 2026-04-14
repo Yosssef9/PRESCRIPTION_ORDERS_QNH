@@ -9,12 +9,15 @@ import {
   searchOrders,
   getSections,
   getOrderByNo,
+  syncOrdersFromOracle,
 } from "../api/prescriptionOrdersApi";
 import TableSpinner from "../components/TableSpinner";
 import TableEmptyState from "../components/TableEmptyState";
 import toast from "react-hot-toast";
 import { formatDate } from "../helpers/formatDate";
+import { Filter } from "lucide-react";
 import SearchableMultiSelect from "../components/SearchableMultiSelect";
+import getTodayDateString from "../helpers/getTodayDateString";
 const statusClassMap = {
   Active: "bg-emerald-50 text-emerald-700",
   Pending: "bg-amber-50 text-amber-700",
@@ -207,7 +210,7 @@ export default function PrescriptionOrdersPage() {
   const [selectedItems, setSelectedItems] = useState([]);
   const [message, setMessage] = useState({ text: "", type: "" });
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [detailsFilter, setDetailsFilter] = useState("all");
   const [hasSearchedOrders, setHasSearchedOrders] = useState(false);
   const [hasLoadedDetails, setHasLoadedDetails] = useState(false);
   const [sections, setSections] = useState([]);
@@ -256,6 +259,76 @@ export default function PrescriptionOrdersPage() {
       toast.error(text);
     }
   }
+  const syncMutation = useMutation({
+    mutationFn: syncOrdersFromOracle,
+    onSuccess: (result) => {
+      showMessage(
+        result?.message ||
+          `Orders synchronized successfully. Inserted: ${result?.insertedCount || 0}`,
+        "success",
+      );
+    },
+    onError: (error) => {
+      showMessage(
+        error?.response?.data?.message || "Failed to synchronize orders.",
+        "error",
+      );
+    },
+  });
+  async function runOrdersSync(silent = false) {
+    try {
+      const result = await syncMutation.mutateAsync();
+
+      if (!silent) {
+        showMessage(
+          result?.message ||
+            `Orders synchronized successfully. Inserted: ${result?.insertedCount || 0}`,
+          "success",
+        );
+      }
+
+      return result;
+    } catch (error) {
+      if (!silent) {
+        showMessage(
+          error?.response?.data?.message || "Failed to synchronize orders.",
+          "error",
+        );
+      }
+      return null;
+    }
+  }
+  useEffect(() => {
+    async function initPage() {
+      const today = new Date().toISOString().split("T")[0];
+
+      setDateFrom(today);
+      setDateTo(today);
+
+      await runOrdersSync(true);
+
+      ordersMutation.mutate({
+        patientCode: "",
+        dateFrom: today,
+        dateTo: today,
+        sections: [],
+      });
+
+      setHasSearchedOrders(true);
+    }
+
+    initPage();
+  }, []);
+  useEffect(() => {
+    const intervalId = setInterval(
+      () => {
+        runOrdersSync(true);
+      },
+      15 * 60 * 1000,
+    );
+
+    return () => clearInterval(intervalId);
+  }, []);
   const patientMutation = useMutation({
     mutationFn: getPatientByCode,
     onSuccess: (data) => {
@@ -441,7 +514,9 @@ export default function PrescriptionOrdersPage() {
   }
 
   function toggleAll() {
-    const availableItems = details.filter((item) => !isItemAlreadySaved(item));
+    const availableItems = filteredDetails.filter(
+      (item) => !isItemAlreadySaved(item),
+    );
     const availableIds = availableItems.map((item) => item.id);
 
     if (
@@ -454,7 +529,7 @@ export default function PrescriptionOrdersPage() {
       return;
     }
 
-    setSelectedItems(availableIds);
+    setSelectedItems((prev) => [...new Set([...prev, ...availableIds])]);
   }
 
   async function handleConfirmSave({ userCode, password }) {
@@ -492,7 +567,21 @@ export default function PrescriptionOrdersPage() {
   }
 
   const selectableItems = details.filter((item) => !isItemAlreadySaved(item));
+  const savedCount = details.filter((item) => isItemAlreadySaved(item)).length;
+  const unsavedCount = details.filter(
+    (item) => !isItemAlreadySaved(item),
+  ).length;
+  const filteredDetails = useMemo(() => {
+    if (detailsFilter === "saved") {
+      return details.filter((item) => isItemAlreadySaved(item));
+    }
 
+    if (detailsFilter === "unsaved") {
+      return details.filter((item) => !isItemAlreadySaved(item));
+    }
+
+    return details;
+  }, [details, detailsFilter]);
   const allSelected = useMemo(() => {
     return (
       selectableItems.length > 0 &&
@@ -504,10 +593,19 @@ export default function PrescriptionOrdersPage() {
   const selectedCount = selectedItems.length;
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(161,136,127,0.2),transparent_20%),linear-gradient(180deg,#f8f3f0_0%,#f2e9e4_100%)] p-6 text-[#4e342e]">
-      <div className="mx-auto max-w-[1450px] overflow-hidden rounded-[28px] border border-[rgba(121,85,72,0.14)] bg-[rgba(255,255,255,0.75)] shadow-[0_12px_30px_rgba(78,52,46,0.12)] backdrop-blur-md">
-        <div className="bg-gradient-to-br from-[#4e342e] to-[#6d4c41] px-7 py-6 text-white">
+    <div className="min-h-screen w-full bg-[radial-gradient(circle_at_top_right,rgba(161,136,127,0.2),transparent_20%),linear-gradient(180deg,#f8f3f0_0%,#f2e9e4_100%)] p-6 text-[#4e342e]">
+      <div className="mx-auto  overflow-hidden rounded-[28px] border border-[rgba(121,85,72,0.14)] bg-[rgba(255,255,255,0.75)] shadow-[0_12px_30px_rgba(78,52,46,0.12)] backdrop-blur-md">
+        <div className="flex items-center justify-between bg-gradient-to-br from-[#4e342e] to-[#6d4c41] px-7 py-6 text-white">
           <h1 className="text-[28px] font-bold">Doctors' Medication Orders</h1>
+
+          <button
+            type="button"
+            onClick={() => runOrdersSync(false)}
+            disabled={syncMutation.isPending}
+            className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {syncMutation.isPending ? "Refreshing..." : "Refresh Orders"}
+          </button>
         </div>
 
         <div className="p-6">
@@ -646,9 +744,7 @@ export default function PrescriptionOrdersPage() {
                       <th className="p-3">Date</th>
                       <th className="p-3">Doctor</th>
                       <th className="p-3">Department</th>
-                      <th className="p-3">Status</th>
                       <th className="p-3">Section</th>
-                      <th className="p-3">Items</th>
                     </tr>
                   </thead>
 
@@ -710,22 +806,12 @@ export default function PrescriptionOrdersPage() {
                                 {o.orderNo}
                               </td>
                               <td className="p-3 whitespace-nowrap">
-                                {o.orderDate}
+                                {formatDate(o.orderDate)}
                               </td>
                               <td className="p-3">{o.doctor}</td>
                               <td className="p-3">{o.department}</td>
-                              <td className="p-3">
-                                <span
-                                  className={`rounded-full px-2.5 py-1 text-xs font-semibold shadow-sm ${statusClassMap[o.status]}`}
-                                >
-                                  {o.status}
-                                </span>
-                              </td>
-                              <td className="p-3">{o.sectionName}</td>
 
-                              <td className="p-3 whitespace-nowrap">
-                                {o.itemsCount}
-                              </td>
+                              <td className="p-3">{o.sectionName}</td>
                             </tr>
                           );
                         })
@@ -748,6 +834,26 @@ export default function PrescriptionOrdersPage() {
                 </h2>
 
                 <div className="flex items-center gap-2">
+                  <div className="relative flex items-center">
+                    <Filter className="absolute left-3 h-4 w-4 text-[#8d6e63]" />
+
+                    <select
+                      value={detailsFilter}
+                      onChange={(e) => setDetailsFilter(e.target.value)}
+                      className="h-[46px] min-w-[190px] appearance-none rounded-xl border border-[#d7ccc8] bg-white pl-10 pr-10 text-sm font-semibold text-[#4e342e] shadow-sm outline-none transition-all duration-200 focus:border-[#8d6e63] focus:ring-2 focus:ring-[#bcaaa4]/30 hover:border-[#a1887f]"
+                    >
+                      <option value="all">All Items ({details.length})</option>
+                      <option value="saved">Saved Only ({savedCount})</option>
+                      <option value="unsaved">
+                        Unsaved Only ({unsavedCount})
+                      </option>
+                    </select>
+
+                    <div className="pointer-events-none absolute right-3 text-[#6d4c41]">
+                      ▼
+                    </div>
+                  </div>
+
                   <input
                     value={orderSearch}
                     onChange={(e) => setOrderSearch(e.target.value)}
@@ -759,13 +865,13 @@ export default function PrescriptionOrdersPage() {
                     placeholder="Quick search by order number"
                     className="h-[46px] min-w-0 rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none sm:min-w-[280px]"
                   />
+
                   <button
                     type="button"
                     onClick={handleSearchByOrderNo}
                     disabled={detailsMutation.isPending}
                     className="h-[46px] cursor-pointer rounded-xl bg-gradient-to-br from-[#5d4037] to-[#795548] px-5 text-sm font-bold text-white shadow-[0_4px_12px_rgba(93,64,55,0.3)] transition hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
                   >
-                    {/* {detailsMutation.isPending ? "Loading..." : "View"} */}
                     View
                   </button>
                 </div>
@@ -818,17 +924,21 @@ export default function PrescriptionOrdersPage() {
                           />
                         </td>
                       </tr>
-                    ) : details.length === 0 ? (
+                    ) : filteredDetails.length === 0 ? (
                       <tr>
                         <td colSpan={11}>
                           <TableEmptyState
                             title="No details found"
-                            subtitle="This order has no item details."
+                            subtitle={
+                              details.length === 0
+                                ? "This order has no item details."
+                                : `No ${detailsFilter} items found for this order.`
+                            }
                           />
                         </td>
                       </tr>
                     ) : (
-                      details.map((d) => (
+                      filteredDetails.map((d) => (
                         <tr
                           key={d.id}
                           onClick={() => toggleItem(d.id)}
@@ -844,7 +954,7 @@ export default function PrescriptionOrdersPage() {
                         >
                           <td className="p-3 whitespace-nowrap">{d.orderNo}</td>
                           <td className="p-3 max-w-[220px] truncate">
-                            {d.orderDate}
+                            {formatDate(d.orderDate)}
                           </td>
                           <td className="p-3 whitespace-nowrap">
                             {d.medicationCode}
@@ -853,9 +963,11 @@ export default function PrescriptionOrdersPage() {
                             {d.medicationName}
                           </td>
                           <td className="p-3 whitespace-nowrap">
-                            {d.actionDate}
+                            {formatDate(d.actionDate)}
                           </td>
-                          <td className="p-3 whitespace-nowrap">{d.endDate}</td>
+                          <td className="p-3 whitespace-nowrap">
+                            {formatDate(d.endDate)}
+                          </td>
                           <td className="p-3">{d.savedByUserCode || "-"}</td>
                           <td className="p-3">{d.savedByUserName || "-"}</td>
                           <td className="p-3">{formatDate(d.savedAt)}</td>{" "}

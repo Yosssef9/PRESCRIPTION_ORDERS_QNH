@@ -58,3 +58,8 @@ export async function saveOrderItems(orderNo, payload) {
   const { data } = await api.post(`/orders/${orderNo}/save`, payload);
   return data;
 }
+
+export async function syncOrdersFromOracle() {
+  const { data } = await api.post("/orders/sync");
+  return data;
+}

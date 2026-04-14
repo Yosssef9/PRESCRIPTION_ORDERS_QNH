@@ -50,7 +50,7 @@ async function searchOrders(req, res, next) {
 
     // 1) Validation:
     // Patient Code OR (From Date + at least one Section)
-    if (!hasPatientCode && !(hasFromDate && hasSections)) {
+    if (!hasPatientCode && !hasFromDate) {
       return res.status(400).json({
         message:
           "Please enter Patient Code, or choose From Date with at least one Section before searching.",
@@ -119,6 +119,14 @@ async function saveOrderItems(req, res, next) {
     next(error);
   }
 }
+async function syncOrdersFromOracle(req, res, next) {
+  try {
+    const result = await service.syncOrdersFromOracle();
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+}
 module.exports = {
   getPatientByCode,
   searchOrders,
@@ -126,4 +134,5 @@ module.exports = {
   getSections,
   saveOrderItems,
   getOrderByNo,
+  syncOrdersFromOracle,
 };

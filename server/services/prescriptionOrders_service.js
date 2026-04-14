@@ -19,7 +19,9 @@ async function saveOrderItems(payload) {
 async function getSections() {
   return db.spGetSections();
 }
-
+async function syncOrdersFromOracle() {
+  return db.spSyncOrdersFromOracle();
+}
 module.exports = {
   getPatientByCode,
   searchOrders,
@@ -27,4 +29,5 @@ module.exports = {
   saveOrderItems,
   getSections,
   getOrderByNo,
+  syncOrdersFromOracle
 };

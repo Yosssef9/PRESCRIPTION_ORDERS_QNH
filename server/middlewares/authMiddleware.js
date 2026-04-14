@@ -9,12 +9,12 @@ function authMiddleware(req, res, next) {
   try {
     const payload = jwt.verify(token, process.env.PORTAL_JWT_SECRET);
     req.user = {
-      id: payload.sub,
-      username: payload.username,
-      name: payload.name,
-      role: payload.role,
+      userCode: payload.userCode,
+      userName: payload.userName,
+      isAdmin: payload.isAdmin,
+      role: payload.isAdmin ? "admin" : "user",
     };
-      console.log("authMiddleware payload", payload);
+    console.log("authMiddleware payload", payload);
 
     next();
   } catch (error) {
