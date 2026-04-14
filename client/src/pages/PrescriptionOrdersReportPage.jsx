@@ -189,57 +189,57 @@ export default function PrescriptionOrdersReportPage() {
               Report Filters
             </h2>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-[#6d4c41]">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+              <div className="space-y-1">
+                <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
                   Patient Code
                 </label>
                 <input
                   value={patientCode}
                   onChange={(e) => setPatientCode(e.target.value)}
                   placeholder="Enter patient code"
-                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                  className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
                 />
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-[#6d4c41]">
+              <div className="space-y-1">
+                <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
                   Patient Name
                 </label>
                 <input
                   value={patientName}
                   onChange={(e) => setPatientName(e.target.value)}
                   placeholder="Enter patient name"
-                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                  className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
                 />
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-[#6d4c41]">
+              <div className="space-y-1">
+                <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
                   Order Date From
                 </label>
                 <input
                   type="date"
                   value={dateFrom}
                   onChange={(e) => setDateFrom(e.target.value)}
-                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                  className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
                 />
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-[#6d4c41]">
+              <div className="space-y-1">
+                <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
                   Order Date To
                 </label>
                 <input
                   type="date"
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
-                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                  className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
                 />
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-[#6d4c41]">
+              <div className="space-y-1">
+                <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
                   Sections
                 </label>
                 <SearchableMultiSelect
@@ -256,87 +256,87 @@ export default function PrescriptionOrdersReportPage() {
                 />
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-[#6d4c41]">
+              <div className="space-y-1">
+                <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
                   Order Number
                 </label>
                 <input
                   value={orderNo}
                   onChange={(e) => setOrderNo(e.target.value)}
                   placeholder="Enter order number"
-                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                  className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
                 />
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-[#6d4c41]">
+              <div className="space-y-1">
+                <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
                   Medication Code
                 </label>
                 <input
                   value={medicationCode}
                   onChange={(e) => setMedicationCode(e.target.value)}
                   placeholder="Enter medication code"
-                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                  className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
                 />
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-[#6d4c41]">
+              <div className="space-y-1">
+                <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
                   Medication Name
                 </label>
                 <input
                   value={medicationName}
                   onChange={(e) => setMedicationName(e.target.value)}
                   placeholder="Enter medication name"
-                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                  className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
                 />
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-[#6d4c41]">
+              <div className="space-y-1">
+                <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
                   Action Date
                 </label>
                 <input
                   type="date"
                   value={actionDate}
                   onChange={(e) => setActionDate(e.target.value)}
-                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                  className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
                 />
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-[#6d4c41]">
+              <div className="space-y-1">
+                <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
                   End Date
                 </label>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                  className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
                 />
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-[#6d4c41]">
+              <div className="space-y-1">
+                <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
                   Saved By Code
                 </label>
                 <input
                   value={savedByCode}
                   onChange={(e) => setSavedByCode(e.target.value)}
                   placeholder="Enter saved by code"
-                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                  className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
                 />
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-[#6d4c41]">
+              <div className="space-y-1">
+                <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
                   Saved By Name
                 </label>
                 <input
                   value={savedByName}
                   onChange={(e) => setSavedByName(e.target.value)}
                   placeholder="Enter saved by name"
-                  className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+                  className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
                 />
               </div>
             </div>

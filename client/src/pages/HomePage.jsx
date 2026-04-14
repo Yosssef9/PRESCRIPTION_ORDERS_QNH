@@ -766,11 +766,7 @@ export default function PrescriptionOrdersPage() {
           </div>
 
           <div className="grid grid-cols-1 gap-[18px]">
-            <motion.div
-              layout
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="rounded-[18px] border border-[#d7ccc8] bg-white p-4"
-            >
+            <div className="rounded-[18px] border border-[#d7ccc8] bg-white p-4">
               {" "}
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-bold text-[#4e342e]">Orders</h2>
@@ -866,13 +862,9 @@ export default function PrescriptionOrdersPage() {
                   </AnimatePresence>
                 </table>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              layout
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="rounded-[18px] border border-[#d7ccc8] bg-white p-4"
-            >
+            <div className="rounded-[18px] border border-[#d7ccc8] bg-white p-4">
               {" "}
               <div className="mb-4 flex justify-between gap-3">
                 <h2 className="text-lg font-bold text-[#4e342e]">
@@ -1050,7 +1042,7 @@ export default function PrescriptionOrdersPage() {
                 </button>
               </div>
               <MessageBox message={message} />
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>
