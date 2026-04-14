@@ -254,7 +254,7 @@ export default function PrescriptionOrdersPage() {
     toast.dismiss(); // remove old toasts
 
     if (type === "success") {
-      toast.success(text);
+      // toast.success(text);
     } else {
       toast.error(text);
     }
