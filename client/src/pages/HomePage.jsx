@@ -681,7 +681,8 @@ export default function PrescriptionOrdersPage() {
   const ordersCount = orders.length;
   const detailsCount = details.length;
   const selectedCount = selectedItems.length;
-
+  const isOrdersTableLoading =
+    syncMutation.isPending || ordersMutation.isPending;
   return (
     <div className="min-h-screen w-full bg-[radial-gradient(circle_at_top_right,rgba(161,136,127,0.2),transparent_20%),linear-gradient(180deg,#f8f3f0_0%,#f2e9e4_100%)] p-6 text-[#4e342e]">
       <div className="mx-auto  overflow-hidden rounded-[28px] border border-[rgba(121,85,72,0.14)] bg-[rgba(255,255,255,0.75)] shadow-[0_12px_30px_rgba(78,52,46,0.12)] backdrop-blur-md">
@@ -700,10 +701,12 @@ export default function PrescriptionOrdersPage() {
             <button
               type="button"
               onClick={() => runOrdersSync(false)}
-              disabled={syncMutation.isPending}
+              disabled={syncMutation.isPending || ordersMutation.isPending}
               className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/20 disabled:opacity-60"
             >
-              {syncMutation.isPending ? "Refreshing..." : "Refresh Orders"}
+              {syncMutation.isPending || ordersMutation.isPending
+                ? "Refreshing..."
+                : "Refresh Orders"}
             </button>
           </div>
         </div>
@@ -836,7 +839,7 @@ export default function PrescriptionOrdersPage() {
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-bold text-[#4e342e]">Orders</h2>
 
-                {hasSearchedOrders && !ordersMutation.isPending && (
+                {hasSearchedOrders && !isOrdersTableLoading && (
                   <span className="text-sm text-[#6d4c41]">
                     {orders.length} result{orders.length !== 1 && "s"} found
                   </span>
@@ -878,7 +881,7 @@ export default function PrescriptionOrdersPage() {
                   <AnimatePresence mode="wait" initial={false}>
                     <motion.tbody
                       key={
-                        ordersMutation.isPending
+                        isOrdersTableLoading
                           ? "orders-loading"
                           : !hasSearchedOrders
                             ? "orders-idle"
@@ -891,15 +894,15 @@ export default function PrescriptionOrdersPage() {
                       exit={{ opacity: 0, y: -6 }}
                       transition={{ duration: 0.22 }}
                     >
-                      {ordersMutation.isPending ? (
+                      {isOrdersTableLoading ? (
                         <tr>
-                          <td colSpan={6}>
+                          <td colSpan={4}>
                             <TableSpinner text="Loading orders..." />
                           </td>
                         </tr>
                       ) : !hasSearchedOrders ? (
                         <tr>
-                          <td colSpan={6}>
+                          <td colSpan={4}>
                             <TableEmptyState
                               title="No search yet"
                               subtitle="Enter Patient Code or date filters, then click Search."
@@ -908,7 +911,7 @@ export default function PrescriptionOrdersPage() {
                         </tr>
                       ) : orders.length === 0 ? (
                         <tr>
-                          <td colSpan={6}>
+                          <td colSpan={4}>
                             <TableEmptyState
                               title="No orders found"
                               subtitle="No results matched the selected filters."

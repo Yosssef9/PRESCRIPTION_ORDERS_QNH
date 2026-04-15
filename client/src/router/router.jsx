@@ -28,7 +28,7 @@ const router = createBrowserRouter(
     },
   ],
   {
-    basename: "/PRESCRIPTION-ORDERS",
+    basename: "/prescription-orders",
   },
 );
 
