@@ -19,7 +19,7 @@ import SearchableMultiSelect from "../components/SearchableMultiSelect";
 import TablePagination from "../components/TablePagination";
 import compareValues from "../helpers/compareValues";
 import renderSortArrow from "../helpers/renderSortArrow";
- 
+
 function MessageBox({ message }) {
   if (!message.text) return null;
 
@@ -599,7 +599,23 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
         detailsMutation.mutateAsync(orderNo),
       ]);
 
-      setOrders(orderRow ? [orderRow] : []);
+      const results = orderRow ? [orderRow] : [];
+
+      setOrders(results);
+
+      // ✅ RESET PAGINATION
+      setPagination({
+        page: 1,
+        pageSize: pagination.pageSize,
+        total: results.length,
+        totalPages: 1,
+        hasNext: false,
+      });
+      // ✅ CLEAR FILTERS (HERE 👇)
+      setSelectedSections([]);
+      setDoctorName("");
+      setDateFrom("");
+      setDateTo("");
       setSelectedOrderNo(orderNo);
       setDetails(orderDetails || []);
       setSelectedItems([]);
@@ -878,7 +894,7 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
           </div>
 
           <div className="max-h-[320px] overflow-auto rounded-[14px] border border-[#d7ccc8]">
-            <table className="w-full min-w-[900px] text-left">
+            <table className="w-full min-w-[1200px] text-left">
               <thead className="sticky top-0 z-10 bg-[#f4ece8]">
                 <tr className="bg-[#f4ece8] text-xs uppercase tracking-wide text-[#6d4c41]">
                   <th
@@ -892,6 +908,19 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
                     onClick={() => handleOrdersSort("actionDate")}
                   >
                     Action Date {renderSortArrow(ordersSort, "actionDate")}
+                  </th>
+                  <th
+                    className="cursor-pointer whitespace-nowrap p-3 select-none hover:text-[#4e342e]"
+                    onClick={() => handleOrdersSort("patientCode")}
+                  >
+                    Patient Code {renderSortArrow(ordersSort, "patientCode")}
+                  </th>
+
+                  <th
+                    className="cursor-pointer whitespace-nowrap p-3 select-none hover:text-[#4e342e]"
+                    onClick={() => handleOrdersSort("patientName")}
+                  >
+                    Patient Name {renderSortArrow(ordersSort, "patientName")}
                   </th>
                   <th
                     className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
@@ -926,13 +955,13 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
                 >
                   {isOrdersTableLoading ? (
                     <tr>
-                      <td colSpan={4}>
+                      <td colSpan={6}>
                         <TableSpinner text="Loading unit dose orders..." />
                       </td>
                     </tr>
                   ) : !hasSearchedOrders ? (
                     <tr>
-                      <td colSpan={4}>
+                      <td colSpan={6}>
                         <TableEmptyState
                           title="No search yet"
                           subtitle="Enter Patient Code or date filters, then click Search."
@@ -941,7 +970,7 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
                     </tr>
                   ) : orders.length === 0 ? (
                     <tr>
-                      <td colSpan={4}>
+                      <td colSpan={6}>
                         <TableEmptyState
                           title="No orders found"
                           subtitle="No results matched the selected filters."
@@ -965,6 +994,12 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
                           <td className="p-3 whitespace-nowrap">{o.orderNo}</td>
                           <td className="p-3 whitespace-nowrap">
                             {formatDate(o.actionDate)}
+                          </td>
+                          <td className="p-3 whitespace-nowrap">
+                            {o.patientCode || "-"}
+                          </td>
+                          <td className="p-3 whitespace-nowrap">
+                            {o.patientName || "-"}
                           </td>
                           <td className="p-3">{o.doctor}</td>
                           <td className="p-3">{o.sectionName}</td>
