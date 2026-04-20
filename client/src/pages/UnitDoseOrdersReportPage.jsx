@@ -9,7 +9,7 @@ import {
   getSections,
   searchOrdersReport,
   getPatientByCode,
-} from "../api/prescriptionOrdersApi";
+} from "../api/unitDoseOrdersApi";
 import { formatDate } from "../helpers/formatDate";
 import SearchableMultiSelect from "../components/SearchableMultiSelect";
 import TableSpinner from "../components/TableSpinner";
@@ -20,24 +20,22 @@ import { ArrowLeft, BarChart } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import TablePagination from "../components/TablePagination";
 
-export default function PrescriptionOrdersReportPage() {
+export default function UnitDoseReportPage() {
   const [patientCode, setPatientCode] = useState("");
   const [patientName, setPatientName] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [sections, setSections] = useState([]);
   const [selectedSections, setSelectedSections] = useState([]);
+  const [sections, setSections] = useState([]);
+  const [sectionsLoading, setSectionsLoading] = useState(false);
+
   const [orderNo, setOrderNo] = useState("");
-  const [medicationCode, setMedicationCode] = useState("");
-  const [medicationName, setMedicationName] = useState("");
+  const [doctorName, setDoctorName] = useState("");
   const [actionDateFrom, setActionDateFrom] = useState("");
   const [actionDateTo, setActionDateTo] = useState("");
+  const [medicationName, setMedicationName] = useState("");
   const [savedByCode, setSavedByCode] = useState("");
   const [savedByName, setSavedByName] = useState("");
-  const [rows, setRows] = useState([]);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [sectionsLoading, setSectionsLoading] = useState(false);
-  const { user, loading } = useAuth();
+  const [recipientAtFrom, setRecipientAtFrom] = useState("");
+  const [recipientAtTo, setRecipientAtTo] = useState("");
   const [pagination, setPagination] = useState({
     page: 1,
     pageSize: 10,
@@ -45,10 +43,17 @@ export default function PrescriptionOrdersReportPage() {
     totalPages: 0,
     hasNext: false,
   });
+  const [rows, setRows] = useState([]);
+  const [hasSearched, setHasSearched] = useState(false);
+
   const [reportSort, setReportSort] = useState({
     key: "",
     direction: "asc",
   });
+
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
   function handleReportSort(columnKey) {
     const newDirection =
       reportSort.key === columnKey && reportSort.direction === "asc"
@@ -64,24 +69,23 @@ export default function PrescriptionOrdersReportPage() {
     setPagination((prev) => ({ ...prev, page: 1 }));
 
     reportMutation.mutate({
-      patientCode,
-      dateFrom,
-      dateTo,
+      orderNo: orderNo.trim(),
+      patientCode: patientCode.trim(),
       sections: selectedSections,
-      orderNo,
-      medicationCode,
-      medicationName,
+      doctorName: doctorName.trim(),
       actionDateFrom,
       actionDateTo,
-      savedByCode,
-      savedByName,
+      medicationName: medicationName.trim(),
+      savedByCode: savedByCode.trim(),
+      savedByName: savedByName.trim(),
+      recipientAtFrom,
+      recipientAtTo,
       page: 1,
       pageSize: pagination.pageSize,
       sortBy: newSort.key,
       sortDirection: newSort.direction,
     });
   }
-  const navigate = useNavigate();
 
   function showMessage(text, type = "success") {
     if (!text) return;
@@ -114,6 +118,7 @@ export default function PrescriptionOrdersReportPage() {
       isMounted = false;
     };
   }, []);
+
   const patientMutation = useMutation({
     mutationFn: getPatientByCode,
     onSuccess: (data) => {
@@ -124,6 +129,7 @@ export default function PrescriptionOrdersReportPage() {
       showMessage("Patient not found.", "error");
     },
   });
+
   async function handlePatientBlur() {
     const code = patientCode.trim();
 
@@ -145,6 +151,13 @@ export default function PrescriptionOrdersReportPage() {
     onError: (error) => {
       setRows([]);
       setHasSearched(true);
+      setPagination({
+        page: 1,
+        pageSize: 10,
+        total: 0,
+        totalPages: 0,
+        hasNext: false,
+      });
       showMessage(
         error?.response?.data?.message || "Failed to load report.",
         "error",
@@ -154,16 +167,17 @@ export default function PrescriptionOrdersReportPage() {
 
   function handleSearch() {
     const hasAnyFilter =
-      !!patientCode.trim() ||
-      !!dateFrom ||
-      !!dateTo ||
-      selectedSections.length > 0 ||
       !!orderNo.trim() ||
-      !!medicationCode.trim() ||
+      !!patientCode.trim() ||
+      selectedSections.length > 0 ||
+      !!doctorName.trim() ||
       !!actionDateFrom ||
       !!actionDateTo ||
+      !!medicationName.trim() ||
       !!savedByCode.trim() ||
-      !!savedByName.trim();
+      !!savedByName.trim() ||
+      !!recipientAtFrom ||
+      !!recipientAtTo;
 
     if (!hasAnyFilter) {
       showMessage("Please enter at least one search filter.", "error");
@@ -173,37 +187,40 @@ export default function PrescriptionOrdersReportPage() {
     setPagination((prev) => ({ ...prev, page }));
 
     reportMutation.mutate({
-      patientCode,
-      dateFrom,
-      dateTo,
+      orderNo: orderNo.trim(),
+      patientCode: patientCode.trim(),
       sections: selectedSections,
-      orderNo,
-      medicationCode,
-      medicationName,
+      doctorName: doctorName.trim(),
       actionDateFrom,
       actionDateTo,
-      savedByCode,
-      savedByName,
+      medicationName: medicationName.trim(),
+      savedByCode: savedByCode.trim(),
+      savedByName: savedByName.trim(),
+      recipientAtFrom,
+      recipientAtTo,
       page,
       pageSize: pagination.pageSize,
       sortBy: reportSort.key,
       sortDirection: reportSort.direction,
     });
   }
+
   function handleClearAll() {
+    setOrderNo("");
     setPatientCode("");
     setPatientName("");
-    setDateFrom("");
-    setDateTo("");
     setSelectedSections([]);
-    setOrderNo("");
-    setMedicationCode("");
+    setDoctorName("");
     setActionDateFrom("");
     setActionDateTo("");
+    setMedicationName("");
     setSavedByCode("");
     setSavedByName("");
+    setRecipientAtFrom("");
+    setRecipientAtTo("");
     setRows([]);
     setHasSearched(false);
+
     setPagination({
       page: 1,
       pageSize: 10,
@@ -226,23 +243,24 @@ export default function PrescriptionOrdersReportPage() {
 
     const exportRows = rows.map((row) => ({
       "Order No.": row.orderNo,
-      "Order Date": formatDate(row.orderDate),
-      Doctor: row.doctor,
-      Section: row.sectionName,
       "Patient Code": row.patientCode,
       "Patient Name": row.patientName,
-      "Medication Code": row.medicationCode,
+      "Action Date": row.actionDate ? formatDate(row.actionDate) : "",
+      Doctor: row.doctor,
+      Section: row.sectionName,
       "Medication Name": row.medicationName,
-      "Action Date": formatDate(row.actionDate),
-      "End Date": formatDate(row.endDate),
+      Qty: row.qty,
+      "Unit Name": row.unitName,
+      Discontinued: row.isDiscontinued ? "Yes" : "No",
       "Saved By Code": row.savedByCode,
       "Saved By Name": row.savedByName,
-      "Saved At": formatDate(row.savedAt),
+      "Saved At": row.savedAt ? formatDate(row.savedAt) : "",
+      Notes: row.notes,
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(exportRows);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Unit Dose Report");
 
     const excelBuffer = XLSX.write(workbook, {
       bookType: "xlsx",
@@ -253,7 +271,7 @@ export default function PrescriptionOrdersReportPage() {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
 
-    saveAs(fileData, "prescription-orders-report.xlsx");
+    saveAs(fileData, "unit-dose-report.xlsx");
   }
 
   return (
@@ -262,9 +280,7 @@ export default function PrescriptionOrdersReportPage() {
         <div className="flex items-center justify-between bg-gradient-to-br from-[#4e342e] to-[#6d4c41] px-7 py-6 text-white">
           <div className="flex items-center gap-2">
             <BarChart className="h-6 w-6" />
-            <h1 className="text-[28px] font-bold">
-              Prescription Orders Report
-            </h1>
+            <h1 className="text-[28px] font-bold">Unit Dose Report</h1>
           </div>
 
           <div className="flex items-center gap-2">
@@ -298,6 +314,18 @@ export default function PrescriptionOrdersReportPage() {
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
               <div className="space-y-1">
                 <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
+                  Order Number
+                </label>
+                <input
+                  value={orderNo}
+                  onChange={(e) => setOrderNo(e.target.value)}
+                  placeholder="Enter order number"
+                  className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
                   Patient Code
                 </label>
                 <input
@@ -329,24 +357,12 @@ export default function PrescriptionOrdersReportPage() {
 
               <div className="space-y-1">
                 <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
-                  Order Date From
+                  Doctor Name
                 </label>
                 <input
-                  type="date"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                  className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
-                  Order Date To
-                </label>
-                <input
-                  type="date"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
+                  value={doctorName}
+                  onChange={(e) => setDoctorName(e.target.value)}
+                  placeholder="Enter doctor name"
                   className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
                 />
               </div>
@@ -366,42 +382,6 @@ export default function PrescriptionOrdersReportPage() {
                   noResultsText="No sections found"
                   getOptionLabel={(item) => item.sectionName}
                   getOptionValue={(item) => item.sectionName}
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
-                  Order Number
-                </label>
-                <input
-                  value={orderNo}
-                  onChange={(e) => setOrderNo(e.target.value)}
-                  placeholder="Enter order number"
-                  className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
-                  Medication Code
-                </label>
-                <input
-                  value={medicationCode}
-                  onChange={(e) => setMedicationCode(e.target.value)}
-                  placeholder="Enter medication code"
-                  className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
-                  Medication Name
-                </label>
-                <input
-                  value={medicationName}
-                  onChange={(e) => setMedicationName(e.target.value)}
-                  placeholder="Enter medication name"
-                  className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
                 />
               </div>
 
@@ -431,6 +411,18 @@ export default function PrescriptionOrdersReportPage() {
 
               <div className="space-y-1">
                 <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
+                  Medication Name
+                </label>
+                <input
+                  value={medicationName}
+                  onChange={(e) => setMedicationName(e.target.value)}
+                  placeholder="Enter medication name"
+                  className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
                   Saved By Code
                 </label>
                 <input
@@ -449,6 +441,30 @@ export default function PrescriptionOrdersReportPage() {
                   value={savedByName}
                   onChange={(e) => setSavedByName(e.target.value)}
                   placeholder="Enter saved by name"
+                  className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
+                  Recipient At From
+                </label>
+                <input
+                  type="date"
+                  value={recipientAtFrom}
+                  onChange={(e) => setRecipientAtFrom(e.target.value)}
+                  className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-[11px] font-medium leading-none text-[#7b5e57]">
+                  Recipient At To
+                </label>
+                <input
+                  type="date"
+                  value={recipientAtTo}
+                  onChange={(e) => setRecipientAtTo(e.target.value)}
                   className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
                 />
               </div>
@@ -493,61 +509,53 @@ export default function PrescriptionOrdersReportPage() {
             </div>
 
             <div className="max-h-[520px] overflow-auto rounded-[14px] border border-[#d7ccc8]">
-              <table className="w-full min-w-[1600px] text-left">
+              <table className="w-full min-w-[1900px] text-left">
                 <thead className="sticky top-0 z-10 bg-[#f4ece8]">
                   <tr className="text-xs uppercase tracking-wide text-[#6d4c41]">
                     <th
-                      className="whitespace-nowrap cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
                       onClick={() => handleReportSort("orderNo")}
                     >
                       Order No. {renderSortArrow(reportSort, "orderNo")}
                     </th>
 
                     <th
-                      className="whitespace-nowrap cursor-pointer p-3 select-none hover:text-[#4e342e]"
-                      onClick={() => handleReportSort("orderDate")}
-                    >
-                      Order Date {renderSortArrow(reportSort, "orderDate")}
-                    </th>
-
-                    <th
-                      className="whitespace-nowrap cursor-pointer p-3 select-none hover:text-[#4e342e]"
-                      onClick={() => handleReportSort("doctor")}
-                    >
-                      Doctor {renderSortArrow(reportSort, "doctor")}
-                    </th>
-
-                    <th
-                      className="whitespace-nowrap cursor-pointer p-3 select-none hover:text-[#4e342e]"
-                      onClick={() => handleReportSort("sectionName")}
-                    >
-                      Section {renderSortArrow(reportSort, "sectionName")}
-                    </th>
-
-                    <th
-                      className="whitespace-nowrap cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
                       onClick={() => handleReportSort("patientCode")}
                     >
                       Patient Code {renderSortArrow(reportSort, "patientCode")}
                     </th>
 
                     <th
-                      className="whitespace-nowrap cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
                       onClick={() => handleReportSort("patientName")}
                     >
                       Patient Name {renderSortArrow(reportSort, "patientName")}
                     </th>
 
                     <th
-                      className="whitespace-nowrap cursor-pointer p-3 select-none hover:text-[#4e342e]"
-                      onClick={() => handleReportSort("medicationCode")}
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      onClick={() => handleReportSort("actionDate")}
                     >
-                      Medication Code{" "}
-                      {renderSortArrow(reportSort, "medicationCode")}
+                      Action Date {renderSortArrow(reportSort, "actionDate")}
                     </th>
 
                     <th
-                      className="whitespace-nowrap cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      onClick={() => handleReportSort("doctor")}
+                    >
+                      Doctor {renderSortArrow(reportSort, "doctor")}
+                    </th>
+
+                    <th
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      onClick={() => handleReportSort("sectionName")}
+                    >
+                      Section {renderSortArrow(reportSort, "sectionName")}
+                    </th>
+
+                    <th
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
                       onClick={() => handleReportSort("medicationName")}
                     >
                       Medication Name{" "}
@@ -555,38 +563,53 @@ export default function PrescriptionOrdersReportPage() {
                     </th>
 
                     <th
-                      className="whitespace-nowrap cursor-pointer p-3 select-none hover:text-[#4e342e]"
-                      onClick={() => handleReportSort("actionDate")}
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      onClick={() => handleReportSort("qty")}
                     >
-                      Action Date {renderSortArrow(reportSort, "actionDate")}
+                      Qty {renderSortArrow(reportSort, "qty")}
                     </th>
 
                     <th
-                      className="whitespace-nowrap cursor-pointer p-3 select-none hover:text-[#4e342e]"
-                      onClick={() => handleReportSort("endDate")}
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      onClick={() => handleReportSort("unitName")}
                     >
-                      End Date {renderSortArrow(reportSort, "endDate")}
+                      Unit Name {renderSortArrow(reportSort, "unitName")}
                     </th>
 
                     <th
-                      className="whitespace-nowrap cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      onClick={() => handleReportSort("isDiscontinued")}
+                    >
+                      Discontinued{" "}
+                      {renderSortArrow(reportSort, "isDiscontinued")}
+                    </th>
+
+                    <th
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
                       onClick={() => handleReportSort("savedByCode")}
                     >
                       Saved By Code {renderSortArrow(reportSort, "savedByCode")}
                     </th>
 
                     <th
-                      className="whitespace-nowrap cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
                       onClick={() => handleReportSort("savedByName")}
                     >
                       Saved By Name {renderSortArrow(reportSort, "savedByName")}
                     </th>
 
                     <th
-                      className="whitespace-nowrap cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
                       onClick={() => handleReportSort("savedAt")}
                     >
                       Saved At {renderSortArrow(reportSort, "savedAt")}
+                    </th>
+
+                    <th
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      onClick={() => handleReportSort("notes")}
+                    >
+                      Notes {renderSortArrow(reportSort, "notes")}
                     </th>
                   </tr>
                 </thead>
@@ -594,13 +617,13 @@ export default function PrescriptionOrdersReportPage() {
                 <tbody>
                   {reportMutation.isPending ? (
                     <tr>
-                      <td colSpan={13}>
-                        <TableSpinner text="Loading report..." />
+                      <td colSpan={14}>
+                        <TableSpinner text="Loading unit dose report..." />
                       </td>
                     </tr>
                   ) : !hasSearched ? (
                     <tr>
-                      <td colSpan={13}>
+                      <td colSpan={14}>
                         <TableEmptyState
                           title="No search yet"
                           subtitle="Enter report filters, then click Search."
@@ -609,7 +632,7 @@ export default function PrescriptionOrdersReportPage() {
                     </tr>
                   ) : rows.length === 0 ? (
                     <tr>
-                      <td colSpan={13}>
+                      <td colSpan={14}>
                         <TableEmptyState
                           title="No report data found"
                           subtitle="No results matched the selected filters."
@@ -619,29 +642,32 @@ export default function PrescriptionOrdersReportPage() {
                   ) : (
                     rows.map((row, index) => (
                       <tr
-                        key={`${row.orderNo}-${row.medicationCode}-${index}`}
+                        key={`${row.orderNo}-${row.medicationName}-${index}`}
                         className="border-b hover:bg-gray-50"
                       >
                         <td className="p-3 whitespace-nowrap">{row.orderNo}</td>
+                        <td className="p-3">{row.patientCode}</td>
+                        <td className="p-3">{row.patientName}</td>
                         <td className="p-3 whitespace-nowrap">
-                          {formatDate(row.orderDate)}
+                          {row.actionDate ? formatDate(row.actionDate) : "-"}
                         </td>
                         <td className="p-3">{row.doctor}</td>
                         <td className="p-3">{row.sectionName}</td>
-                        <td className="p-3">{row.patientCode}</td>
-                        <td className="p-3">{row.patientName}</td>
-                        <td className="p-3">{row.medicationCode}</td>
                         <td className="p-3">{row.medicationName}</td>
+                        <td className="p-3 whitespace-nowrap">{row.qty}</td>
                         <td className="p-3 whitespace-nowrap">
-                          {formatDate(row.actionDate)}
+                          {row.unitName}
                         </td>
                         <td className="p-3 whitespace-nowrap">
-                          {formatDate(row.endDate)}
+                          {row.isDiscontinued ? "Yes" : "No"}
                         </td>
                         <td className="p-3">{row.savedByCode || "-"}</td>
                         <td className="p-3">{row.savedByName || "-"}</td>
                         <td className="p-3 whitespace-nowrap">
-                          {formatDate(row.savedAt)}
+                          {row.savedAt ? formatDate(row.savedAt) : "-"}
+                        </td>
+                        <td className="p-3 max-w-[260px] whitespace-pre-wrap break-words">
+                          {row.notes || "-"}
                         </td>
                       </tr>
                     ))
@@ -656,17 +682,17 @@ export default function PrescriptionOrdersReportPage() {
                 setPagination((prev) => ({ ...prev, page: newPage }));
 
                 reportMutation.mutate({
-                  patientCode,
-                  dateFrom,
-                  dateTo,
+                  orderNo: orderNo.trim(),
+                  patientCode: patientCode.trim(),
                   sections: selectedSections,
-                  orderNo,
-                  medicationCode,
-                  medicationName,
+                  doctorName: doctorName.trim(),
                   actionDateFrom,
                   actionDateTo,
-                  savedByCode,
-                  savedByName,
+                  medicationName: medicationName.trim(),
+                  savedByCode: savedByCode.trim(),
+                  savedByName: savedByName.trim(),
+                  recipientAtFrom,
+                  recipientAtTo,
                   page: newPage,
                   pageSize: pagination.pageSize,
                   sortBy: reportSort.key,
@@ -678,17 +704,17 @@ export default function PrescriptionOrdersReportPage() {
                 setPagination((prev) => ({ ...prev, page: newPage }));
 
                 reportMutation.mutate({
-                  patientCode,
-                  dateFrom,
-                  dateTo,
+                  orderNo: orderNo.trim(),
+                  patientCode: patientCode.trim(),
                   sections: selectedSections,
-                  orderNo,
-                  medicationCode,
-                  medicationName,
+                  doctorName: doctorName.trim(),
                   actionDateFrom,
                   actionDateTo,
-                  savedByCode,
-                  savedByName,
+                  medicationName: medicationName.trim(),
+                  savedByCode: savedByCode.trim(),
+                  savedByName: savedByName.trim(),
+                  recipientAtFrom,
+                  recipientAtTo,
                   page: newPage,
                   pageSize: pagination.pageSize,
                   sortBy: reportSort.key,

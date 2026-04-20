@@ -25,6 +25,7 @@ async function syncOrdersFromOracle() {
 async function searchOrdersReport(filters) {
   return db.spSearchOrdersReport(filters);
 }
+
 module.exports = {
   getPatientByCode,
   searchOrders,
