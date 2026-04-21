@@ -588,6 +588,12 @@ export default function PrescriptionOrdersReportPage() {
                     >
                       Saved At {renderSortArrow(reportSort, "savedAt")}
                     </th>
+                    <th
+                      className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                      onClick={() => handleReportSort("notes")}
+                    >
+                      Notes {renderSortArrow(reportSort, "notes")}
+                    </th>
                   </tr>
                 </thead>
 
@@ -642,6 +648,9 @@ export default function PrescriptionOrdersReportPage() {
                         <td className="p-3">{row.savedByName || "-"}</td>
                         <td className="p-3 whitespace-nowrap">
                           {formatDate(row.savedAt)}
+                        </td>
+                        <td className="p-3 max-w-[260px] whitespace-pre-wrap break-words">
+                          {row.notes || "-"}
                         </td>
                       </tr>
                     ))

@@ -1097,74 +1097,110 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
           </div>
 
           <div className="max-h-[420px] overflow-auto rounded-[14px] border border-[#d7ccc8]">
-            <table className="w-full min-w-[1500px] text-left">
-              <thead className="sticky top-0 z-10 bg-[#f4ece8]">
+            <table className="w-full min-w-[1600px] table-fixed border-collapse text-left">
+              <thead className="sticky top-0 z-10 bg-[#f4ece8] shadow-[0_1px_0_#d7ccc8]">
                 <tr className="bg-[#f4ece8] text-xs uppercase tracking-wide text-[#6d4c41]">
                   <th
-                    className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                    className="w-[110px] border border-[#e5ddd8] bg-[#f4ece8] p-3 select-none hover:text-[#4e342e] cursor-pointer"
                     onClick={() => handleDetailsSort("orderNo")}
                   >
-                    Order No. {renderSortArrow(detailsSort, "orderNo")}
+                    <div className="flex items-center justify-center gap-1 whitespace-nowrap">
+                      <span>Order No.</span>
+                      {renderSortArrow(detailsSort, "orderNo")}
+                    </div>
                   </th>
+
                   <th
-                    className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                    className="w-[150px] border border-[#e5ddd8] bg-[#f4ece8] p-3 select-none hover:text-[#4e342e] cursor-pointer"
                     onClick={() => handleDetailsSort("actionDate")}
                   >
-                    Action Date {renderSortArrow(detailsSort, "actionDate")}
+                    <div className="flex items-center justify-center gap-1 whitespace-nowrap">
+                      <span>Action Date</span>
+                      {renderSortArrow(detailsSort, "actionDate")}
+                    </div>
                   </th>
+
                   <th
-                    className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                    className="border border-[#e5ddd8] bg-[#f4ece8] p-3 select-none hover:text-[#4e342e] cursor-pointer"
                     onClick={() => handleDetailsSort("medicationName")}
                   >
-                    Medication Name{" "}
-                    {renderSortArrow(detailsSort, "medicationName")}
+                    <div className="flex items-center justify-center gap-1 whitespace-nowrap">
+                      <span>Medication Name</span>
+                      {renderSortArrow(detailsSort, "medicationName")}
+                    </div>
                   </th>
+
                   <th
-                    className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                    className="w-[90px] border border-[#e5ddd8] bg-[#f4ece8] p-3 select-none hover:text-[#4e342e] cursor-pointer"
                     onClick={() => handleDetailsSort("qty")}
                   >
-                    Qty {renderSortArrow(detailsSort, "qty")}
+                    <div className="flex items-center justify-center gap-1 whitespace-nowrap">
+                      <span>Qty</span>
+                      {renderSortArrow(detailsSort, "qty")}
+                    </div>
                   </th>
+
                   <th
-                    className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                    className="w-[120px] border border-[#e5ddd8] bg-[#f4ece8] p-3 select-none hover:text-[#4e342e] cursor-pointer"
                     onClick={() => handleDetailsSort("unitName")}
                   >
-                    Unit Name {renderSortArrow(detailsSort, "unitName")}
+                    <div className="flex items-center justify-center gap-1 whitespace-nowrap">
+                      <span>Unit Name</span>
+                      {renderSortArrow(detailsSort, "unitName")}
+                    </div>
                   </th>
+
                   <th
-                    className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                    className="w-[130px] border border-[#e5ddd8] bg-[#f4ece8] p-3 select-none hover:text-[#4e342e] cursor-pointer"
                     onClick={() => handleDetailsSort("isDiscontinued")}
                   >
-                    Discontinued{" "}
-                    {renderSortArrow(detailsSort, "isDiscontinued")}
+                    <div className="flex items-center justify-center gap-1 whitespace-nowrap">
+                      <span>Discontinued</span>
+                      {renderSortArrow(detailsSort, "isDiscontinued")}
+                    </div>
                   </th>
+
                   <th
-                    className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                    className="w-[130px] border border-[#e5ddd8] bg-[#f4ece8] p-3 select-none hover:text-[#4e342e] cursor-pointer"
                     onClick={() => handleDetailsSort("savedByUserCode")}
                   >
-                    Saved By Code{" "}
-                    {renderSortArrow(detailsSort, "savedByUserCode")}
+                    <div className="flex items-center justify-center gap-1 whitespace-nowrap">
+                      <span>Saved By Code</span>
+                      {renderSortArrow(detailsSort, "savedByUserCode")}
+                    </div>
                   </th>
+
                   <th
-                    className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                    className="w-[150px] border border-[#e5ddd8] bg-[#f4ece8] p-3 select-none hover:text-[#4e342e] cursor-pointer"
                     onClick={() => handleDetailsSort("savedByUserName")}
                   >
-                    Saved By Name{" "}
-                    {renderSortArrow(detailsSort, "savedByUserName")}
+                    <div className="flex items-center justify-center gap-1 whitespace-nowrap">
+                      <span>Saved By Name</span>
+                      {renderSortArrow(detailsSort, "savedByUserName")}
+                    </div>
                   </th>
+
                   <th
-                    className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                    className="w-[150px] border border-[#e5ddd8] bg-[#f4ece8] p-3 select-none hover:text-[#4e342e] cursor-pointer"
                     onClick={() => handleDetailsSort("savedAt")}
                   >
-                    Saved At {renderSortArrow(detailsSort, "savedAt")}
+                    <div className="flex items-center justify-center gap-1 whitespace-nowrap">
+                      <span>Saved At</span>
+                      {renderSortArrow(detailsSort, "savedAt")}
+                    </div>
                   </th>
+
                   <th
-                    className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
+                    className="w-[240px] border border-[#e5ddd8] bg-[#f4ece8] p-3 select-none hover:text-[#4e342e] cursor-pointer"
                     onClick={() => handleDetailsSort("notes")}
                   >
-                    Notes {renderSortArrow(detailsSort, "notes")}
+                    <div className="flex items-center justify-center gap-1 whitespace-nowrap">
+                      <span>Notes</span>
+                      {renderSortArrow(detailsSort, "notes")}
+                    </div>
                   </th>
-                  <th className="p-3 text-center">
+
+                  <th className="w-[70px] border border-[#e5ddd8] bg-[#f4ece8] p-3 text-center">
                     <input
                       type="checkbox"
                       checked={allSelected}
@@ -1174,88 +1210,131 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
                 </tr>
               </thead>
 
-              <motion.tbody
-                key={selectedOrderNo || "empty-details"}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.22 }}
-              >
-                {detailsMutation.isPending ? (
-                  <tr>
-                    <td colSpan={11}>
-                      <TableSpinner text="Loading unit dose details..." />
-                    </td>
-                  </tr>
-                ) : !hasLoadedDetails ? (
-                  <tr>
-                    <td colSpan={11}>
-                      <TableEmptyState
-                        title="No order selected"
-                        subtitle="Click any order row or search directly by order number."
-                      />
-                    </td>
-                  </tr>
-                ) : filteredDetails.length === 0 ? (
-                  <tr>
-                    <td colSpan={11}>
-                      <TableEmptyState
-                        title="No details found"
-                        subtitle={
-                          details.length === 0
-                            ? "This order has no item details."
-                            : `No ${detailsFilter} items found for this order.`
-                        }
-                      />
-                    </td>
-                  </tr>
-                ) : (
-                  sortedDetails.map((d) => (
-                    <tr
-                      key={d.id}
-                      onClick={() => toggleItem(d.id)}
-                      className={`cursor-pointer border-b transition-all duration-150 ${
-                        isItemAlreadySaved(d)
-                          ? "bg-[#f7f1ee] text-[#8d6e63] cursor-not-allowed"
-                          : selectedItems.includes(d.id)
-                            ? "bg-[rgba(21,98,160,0.12)] border-l-[4px] border-l-[rgb(21,98,160)]"
-                            : "hover:bg-gray-50"
-                      }`}
-                    >
-                      <td className="p-3 whitespace-nowrap">{d.orderNo}</td>
-                      <td className="p-3 whitespace-nowrap">
-                        {formatDate(d.actionDate)}
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.tbody
+                  key={`${selectedOrderNo || "empty-details"}-${detailsFilter}-${detailsSort.key}-${detailsSort.direction}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.18 }}
+                >
+                  {detailsMutation.isPending ? (
+                    <tr>
+                      <td colSpan={11} className="border border-[#e5ddd8]">
+                        <TableSpinner text="Loading unit dose details..." />
                       </td>
-                      <td className="p-3 whitespace-nowrap">
-                        {d.medicationName}
-                      </td>
-                      <td className="p-3 whitespace-nowrap">{d.qty}</td>
-                      <td className="p-3 whitespace-nowrap">{d.unitName}</td>
-                      <td className="p-3 whitespace-nowrap">
-                        {d.isDiscontinued ? "Yes" : "No"}
-                      </td>
-                      <td className="p-3">{d.savedByUserCode || "-"}</td>
-                      <td className="p-3">{d.savedByUserName || "-"}</td>
-                      <td className="p-3 whitespace-nowrap">
-                        {formatDate(d.savedAt)}
-                      </td>
-                      <td className="p-3 max-w-[260px] whitespace-pre-wrap break-words">
-                        {d.notes || "-"}
-                      </td>
-                      <td className="p-3 text-center">
-                        <input
-                          type="checkbox"
-                          checked={selectedItems.includes(d.id)}
-                          disabled={isItemAlreadySaved(d)}
-                          onClick={(e) => e.stopPropagation()}
-                          onChange={() => toggleItem(d.id)}
-                          className="h-[18px] w-[18px] accent-[#6d4c41] disabled:cursor-not-allowed disabled:opacity-50"
+                    </tr>
+                  ) : !hasLoadedDetails ? (
+                    <tr>
+                      <td colSpan={11} className="border border-[#e5ddd8]">
+                        <TableEmptyState
+                          title="No order selected"
+                          subtitle="Click any order row or search directly by order number."
                         />
                       </td>
                     </tr>
-                  ))
-                )}
-              </motion.tbody>
+                  ) : sortedDetails.length === 0 ? (
+                    <tr>
+                      <td colSpan={11} className="border border-[#e5ddd8]">
+                        <TableEmptyState
+                          title="No details found"
+                          subtitle={
+                            details.length === 0
+                              ? "This order has no item details."
+                              : `No ${detailsFilter} items found for this order.`
+                          }
+                        />
+                      </td>
+                    </tr>
+                  ) : (
+                    <AnimatePresence initial={false}>
+                      {sortedDetails.map((d) => (
+                        <motion.tr
+                          key={d.id}
+                          layout
+                          initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                          transition={{ duration: 0.2, ease: "easeOut" }}
+                          onClick={() => toggleItem(d.id)}
+                          className={`cursor-pointer transition-colors duration-150 ${
+                            isItemAlreadySaved(d)
+                              ? "bg-[#f7f1ee] text-[#8d6e63] cursor-not-allowed"
+                              : selectedItems.includes(d.id)
+                                ? "bg-[rgba(21,98,160,0.12)]"
+                                : "hover:bg-gray-50"
+                          }`}
+                        >
+                          <td className="border border-[#e5ddd8] p-3 align-middle whitespace-nowrap">
+                            {d.orderNo || "-"}
+                          </td>
+
+                          <td className="border border-[#e5ddd8] p-3 align-middle whitespace-nowrap text-center">
+                            {formatDate(d.actionDate)}
+                          </td>
+
+                          <td className="border border-[#e5ddd8] p-3 align-top">
+                            <div
+                              className="overflow-hidden break-words text-sm leading-relaxed text-gray-700"
+                              style={{
+                                display: "-webkit-box",
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: "vertical",
+                              }}
+                              title={d.medicationName || "-"}
+                            >
+                              {d.medicationName || "-"}
+                            </div>
+                          </td>
+
+                          <td className="border border-[#e5ddd8] p-3 align-middle whitespace-nowrap text-center">
+                            {d.qty ?? "-"}
+                          </td>
+
+                          <td className="border border-[#e5ddd8] p-3 align-middle whitespace-nowrap text-center">
+                            {d.unitName || "-"}
+                          </td>
+
+                          <td className="border border-[#e5ddd8] p-3 align-middle whitespace-nowrap text-center">
+                            {d.isDiscontinued ? "Yes" : "No"}
+                          </td>
+
+                          <td className="border border-[#e5ddd8] p-3 align-middle whitespace-nowrap text-center">
+                            {d.savedByUserCode || "-"}
+                          </td>
+
+                          <td className="border border-[#e5ddd8] p-3 align-middle text-center">
+                            <div className="break-words">
+                              {d.savedByUserName || "-"}
+                            </div>
+                          </td>
+
+                          <td className="border border-[#e5ddd8] p-3 align-middle whitespace-nowrap text-center">
+                            {formatDate(d.savedAt)}
+                          </td>
+
+                          <td className="border border-[#e5ddd8] p-3 align-top">
+                            <div className="whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-700">
+                              {d.notes || "-"}
+                            </div>
+                          </td>
+
+                          <td className="border border-[#e5ddd8] p-3 text-center align-middle">
+                            <input
+                              type="checkbox"
+                              checked={selectedItems.includes(d.id)}
+                              disabled={isItemAlreadySaved(d)}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={() => toggleItem(d.id)}
+                              className="h-[18px] w-[18px] accent-[#6d4c41] disabled:cursor-not-allowed disabled:opacity-50"
+                            />
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </AnimatePresence>
+                  )}
+                </motion.tbody>
+              </AnimatePresence>
             </table>
           </div>
 
