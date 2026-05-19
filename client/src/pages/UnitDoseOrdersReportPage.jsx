@@ -10,6 +10,7 @@ import {
   searchOrdersReport,
   getPatientByCode,
 } from "../api/unitDoseOrdersApi";
+import { getTodayStartEnd } from "../helpers/toDateTimeLocal";
 import { formatDate } from "../helpers/formatDate";
 import SearchableMultiSelect from "../components/SearchableMultiSelect";
 import TableSpinner from "../components/TableSpinner";
@@ -183,7 +184,18 @@ export default function UnitDoseReportPage() {
       showMessage("Please enter at least one search filter.", "error");
       return;
     }
+
+    // ✅ add here
+    const finalActionDateTo =
+      actionDateFrom && !actionDateTo ? getTodayStartEnd().end : actionDateTo;
+
+    const finalRecipientAtTo =
+      recipientAtFrom && !recipientAtTo
+        ? getTodayStartEnd().end
+        : recipientAtTo;
+
     const page = 1;
+
     setPagination((prev) => ({ ...prev, page }));
 
     reportMutation.mutate({
@@ -192,12 +204,12 @@ export default function UnitDoseReportPage() {
       sections: selectedSections,
       doctorName: doctorName.trim(),
       actionDateFrom,
-      actionDateTo,
+      actionDateTo: finalActionDateTo,
       medicationName: medicationName.trim(),
       savedByCode: savedByCode.trim(),
       savedByName: savedByName.trim(),
       recipientAtFrom,
-      recipientAtTo,
+      recipientAtTo: finalRecipientAtTo,
       page,
       pageSize: pagination.pageSize,
       sortBy: reportSort.key,

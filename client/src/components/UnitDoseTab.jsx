@@ -712,7 +712,22 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
   ).length;
 
   const filteredDetails = useMemo(() => {
-    let result = details;
+    let result = details.filter((item) => {
+      if (!item.actionDate) return false;
+
+      const itemDate = new Date(item.actionDate);
+      if (isNaN(itemDate)) return false;
+
+      if (detailsDateFrom && itemDate < new Date(detailsDateFrom)) {
+        return false;
+      }
+
+      if (detailsDateTo && itemDate > new Date(detailsDateTo)) {
+        return false;
+      }
+
+      return true;
+    });
 
     if (detailsFilter === "saved") {
       result = result.filter((item) => isItemAlreadySaved(item));
@@ -722,21 +737,8 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
       result = result.filter((item) => !isItemAlreadySaved(item));
     }
 
-    if (detailsDateFrom) {
-      result = result.filter(
-        (item) => new Date(item.actionDate) >= new Date(detailsDateFrom),
-      );
-    }
-
-    if (detailsDateTo) {
-      result = result.filter(
-        (item) => new Date(item.actionDate) <= new Date(detailsDateTo),
-      );
-    }
-
     return result;
   }, [details, detailsFilter, detailsDateFrom, detailsDateTo]);
-
   const sortedDetails = useMemo(() => {
     if (!detailsSort.key) return filteredDetails;
 
@@ -766,7 +768,7 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
 
   const sortedOrders = orders;
   const ordersCount = pagination.total;
-  const detailsCount = details.length;
+  const detailsCount = filteredDetails.length;
   const selectedCount = selectedItems.length;
   const isOrdersTableLoading =
     syncMutation.isPending || ordersMutation.isPending;
@@ -1084,7 +1086,9 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
                   onChange={(e) => setDetailsFilter(e.target.value)}
                   className="h-[46px] min-w-[190px] appearance-none rounded-xl border border-[#d7ccc8] bg-white pl-10 pr-10 text-sm font-semibold text-[#4e342e] shadow-sm outline-none transition-all duration-200 focus:border-[#8d6e63] focus:ring-2 focus:ring-[#bcaaa4]/30 hover:border-[#a1887f]"
                 >
-                  <option value="all">All Items ({details.length})</option>
+                  <option value="all">
+                    Visible Items ({filteredDetails.length})
+                  </option>
                   <option value="saved">Saved Only ({savedCount})</option>
                   <option value="unsaved">Unsaved Only ({unsavedCount})</option>
                 </select>
