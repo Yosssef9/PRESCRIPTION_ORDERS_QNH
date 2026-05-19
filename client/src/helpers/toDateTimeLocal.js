@@ -1,14 +1,20 @@
-function toDateTimeLocal(date) {
-  return date.toISOString().slice(0, 16);
+export function toDateTimeLocal(date) {
+  const pad = (n) => String(n).padStart(2, "0");
+
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 export function getTodayStartEnd() {
-  const now = new Date();
-
-  const start = new Date(now);
+  const start = new Date();
   start.setHours(0, 0, 0, 0);
 
-  const end = new Date(now);
+  const end = new Date();
   end.setHours(23, 59, 0, 0);
 
   return {

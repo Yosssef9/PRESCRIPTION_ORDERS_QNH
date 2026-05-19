@@ -710,7 +710,29 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
   const unsavedCount = details.filter(
     (item) => !isItemAlreadySaved(item),
   ).length;
+  function handleShowAllDetails() {
+    const validDates = details
+      .map((item) => item.actionDate)
+      .filter(Boolean)
+      .map((value) => new Date(value))
+      .filter((date) => !isNaN(date));
 
+    if (!validDates.length) {
+      showMessage("No valid dates found for this order.", "error");
+      return;
+    }
+
+    const oldest = new Date(Math.min(...validDates));
+    const latest = new Date(Math.max(...validDates));
+
+    setDetailsDateFrom(oldest.toISOString().slice(0, 16));
+    setDetailsDateTo(latest.toISOString().slice(0, 16));
+
+    setDetailsSort({
+      key: "actionDate",
+      direction: "asc",
+    });
+  }
   const filteredDetails = useMemo(() => {
     let result = details.filter((item) => {
       if (!item.actionDate) return false;
@@ -1110,6 +1132,14 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
                 onChange={(e) => setDetailsDateTo(e.target.value)}
                 className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
               />
+              <button
+                type="button"
+                onClick={handleShowAllDetails}
+                disabled={!details.length}
+                className="h-[46px] rounded-xl border border-[#d7ccc8] bg-white px-4 text-sm font-bold text-[#5d4037] transition hover:bg-[#f7f1ee] disabled:opacity-60"
+              >
+                Show All
+              </button>
               <input
                 value={orderSearch}
                 onChange={(e) => setOrderSearch(e.target.value)}
