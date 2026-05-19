@@ -390,7 +390,7 @@ export default function UnitDoseReportPage() {
                   Order Date From
                 </label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   value={actionDateFrom}
                   onChange={(e) => setActionDateFrom(e.target.value)}
                   className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
@@ -402,7 +402,7 @@ export default function UnitDoseReportPage() {
                   Order Date To
                 </label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   value={actionDateTo}
                   onChange={(e) => setActionDateTo(e.target.value)}
                   className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
@@ -450,7 +450,7 @@ export default function UnitDoseReportPage() {
                   Recipient At From
                 </label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   value={recipientAtFrom}
                   onChange={(e) => setRecipientAtFrom(e.target.value)}
                   className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"
@@ -462,7 +462,7 @@ export default function UnitDoseReportPage() {
                   Recipient At To
                 </label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   value={recipientAtTo}
                   onChange={(e) => setRecipientAtTo(e.target.value)}
                   className="h-[38px] w-full rounded-[8px] border border-[#bcaaa4] bg-[#fffdfc] px-3 text-sm outline-none transition focus:border-[#8d6e63] focus:ring-1 focus:ring-[#bcaaa4]/30"

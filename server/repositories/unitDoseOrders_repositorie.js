@@ -61,8 +61,12 @@ async function spSearchOrders({
     sql.NVarChar(sql.MAX),
     Array.isArray(sections) && sections.length > 0 ? sections.join(",") : null,
   );
-  request.input("DATE_FROM", sql.Date, dateFrom ? new Date(dateFrom) : null);
-  request.input("DATE_TO", sql.Date, dateTo ? new Date(dateTo) : null);
+  request.input(
+    "DATE_FROM",
+    sql.DateTime,
+    dateFrom ? new Date(dateFrom) : null,
+  );
+  request.input("DATE_TO", sql.DateTime, dateTo ? new Date(dateTo) : null);
   request.input("DOCTOR_NAME", sql.NVarChar(200), doctorName || null);
   request.input("ORDER_NO", sql.NVarChar(50), orderNo || null);
 
@@ -278,13 +282,13 @@ async function spSearchOrdersReport({
 
   request.input(
     "ACTION_DATE_FROM",
-    sql.Date,
+    sql.DateTime,
     actionDateFrom ? new Date(actionDateFrom) : null,
   );
 
   request.input(
     "ACTION_DATE_TO",
-    sql.Date,
+    sql.DateTime,
     actionDateTo ? new Date(actionDateTo) : null,
   );
 
@@ -294,13 +298,13 @@ async function spSearchOrdersReport({
 
   request.input(
     "RECIPIENT_AT_FROM",
-    sql.Date,
+    sql.DateTime,
     recipientAtFrom ? new Date(recipientAtFrom) : null,
   );
 
   request.input(
     "RECIPIENT_AT_TO",
-    sql.Date,
+    sql.DateTime,
     recipientAtTo ? new Date(recipientAtTo) : null,
   );
 

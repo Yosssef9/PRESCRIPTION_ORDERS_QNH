@@ -1,3 +1,4 @@
+const { getTodayEndDateTime } = require("../helpers/getTodayEndDateTime");
 const service = require("../services/unitDoseOrders_service");
 
 async function getPatientByCodeUnitDose(req, res, next) {
@@ -98,7 +99,8 @@ async function searchUnitDoseOrders(req, res, next) {
     }
 
     if (dateFrom && !dateTo) {
-      dateTo = new Date().toISOString().split("T")[0];
+     dateTo = getTodayEndDateTime();
+
     }
 
     const result = await service.searchUnitDoseOrders({
@@ -254,7 +256,8 @@ async function searchOrdersReport(req, res, next) {
     }
 
     if (actionDateFrom && !actionDateTo) {
-      actionDateTo = new Date().toISOString().split("T")[0];
+     actionDateTo = getTodayEndDateTime();
+
     }
 
     if (!recipientAtFrom && recipientAtTo) {
@@ -265,7 +268,7 @@ async function searchOrdersReport(req, res, next) {
     }
 
     if (recipientAtFrom && !recipientAtTo) {
-      recipientAtTo = new Date().toISOString().split("T")[0];
+    recipientAtTo = getTodayEndDateTime();
     }
 
     const result = await service.searchOrdersReport({

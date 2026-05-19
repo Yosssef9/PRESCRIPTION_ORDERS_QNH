@@ -19,6 +19,7 @@ import SearchableMultiSelect from "../components/SearchableMultiSelect";
 import TablePagination from "../components/TablePagination";
 import compareValues from "../helpers/compareValues";
 import renderSortArrow from "../helpers/renderSortArrow";
+import { getTodayStartEnd } from "../helpers/toDateTimeLocal";
 
 function MessageBox({ message }) {
   if (!message.text) return null;
@@ -233,6 +234,8 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
   const [selectedSections, setSelectedSections] = useState([]);
   const [sectionsLoading, setSectionsLoading] = useState(false);
   const [saveNotes, setSaveNotes] = useState("");
+  const [detailsDateFrom, setDetailsDateFrom] = useState("");
+  const [detailsDateTo, setDetailsDateTo] = useState("");
   const [pagination, setPagination] = useState({
     page: 1,
     pageSize: 10,
@@ -383,6 +386,8 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
       key: "",
       direction: "asc",
     });
+    setDetailsDateFrom("");
+    setDetailsDateTo("");
   }
   const syncMutation = useMutation({
     mutationFn: syncOrdersFromOracle,
@@ -427,17 +432,19 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
 
   useEffect(() => {
     async function initPage() {
-      const today = new Date().toISOString().split("T")[0];
+      const { start, end } = getTodayStartEnd();
 
-      setDateFrom(today);
-      setDateTo(today);
+      setDateFrom(start);
+      setDateTo(end);
+      setDetailsDateFrom(start);
+      setDetailsDateTo(end);
 
       await runOrdersSync(true);
 
       ordersMutation.mutate({
         patientCode: "",
-        dateFrom: today,
-        dateTo: today,
+        dateFrom: start,
+        dateTo: end,
         sections: [],
         doctorName: "",
         page: 1,
@@ -558,12 +565,11 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
       showMessage("Please enter From Date when using To Date.", "error");
       return;
     }
-
     if (hasFromDate && !hasToDate) {
-      finalDateTo = new Date().toISOString().split("T")[0];
-      setDateTo(finalDateTo);
+      const { end } = getTodayStartEnd();
+      finalDateTo = end;
+      setDateTo(end);
     }
-
     const page = 1;
 
     setPagination((prev) => ({ ...prev, page }));
@@ -582,9 +588,10 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
   }
 
   async function handleSelectOrder(orderNo) {
+    setDetailsDateFrom(dateFrom || "");
+    setDetailsDateTo(dateTo || "");
     detailsMutation.mutate(orderNo);
   }
-
   async function handleSearchByOrderNo() {
     const orderNo = orderSearch.trim();
 
@@ -612,10 +619,10 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
         hasNext: false,
       });
       // ✅ CLEAR FILTERS (HERE 👇)
-      setSelectedSections([]);
-      setDoctorName("");
-      setDateFrom("");
-      setDateTo("");
+      // setSelectedSections([]);
+      // setDoctorName("");
+      // setDateFrom("");
+      // setDateTo("");
       setSelectedOrderNo(orderNo);
       setDetails(orderDetails || []);
       setSelectedItems([]);
@@ -705,16 +712,30 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
   ).length;
 
   const filteredDetails = useMemo(() => {
+    let result = details;
+
     if (detailsFilter === "saved") {
-      return details.filter((item) => isItemAlreadySaved(item));
+      result = result.filter((item) => isItemAlreadySaved(item));
     }
 
     if (detailsFilter === "unsaved") {
-      return details.filter((item) => !isItemAlreadySaved(item));
+      result = result.filter((item) => !isItemAlreadySaved(item));
     }
 
-    return details;
-  }, [details, detailsFilter]);
+    if (detailsDateFrom) {
+      result = result.filter(
+        (item) => new Date(item.actionDate) >= new Date(detailsDateFrom),
+      );
+    }
+
+    if (detailsDateTo) {
+      result = result.filter(
+        (item) => new Date(item.actionDate) <= new Date(detailsDateTo),
+      );
+    }
+
+    return result;
+  }, [details, detailsFilter, detailsDateFrom, detailsDateTo]);
 
   const sortedDetails = useMemo(() => {
     if (!detailsSort.key) return filteredDetails;
@@ -804,7 +825,7 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
               From Date
             </label>
             <input
-              type="date"
+              type="datetime-local"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
               className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none focus:border-[#8d6e63] focus:ring-2 focus:ring-[#bcaaa4]/30"
@@ -815,7 +836,7 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
               To Date
             </label>
             <input
-              type="date"
+              type="datetime-local"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
               className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none focus:border-[#8d6e63] focus:ring-2 focus:ring-[#bcaaa4]/30"
@@ -1054,7 +1075,7 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
               Unit Dose Details
             </h2>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <div className="relative flex items-center">
                 <Filter className="absolute left-3 h-4 w-4 text-[#8d6e63]" />
 
@@ -1072,7 +1093,19 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
                   ▼
                 </div>
               </div>
+              <input
+                type="datetime-local"
+                value={detailsDateFrom}
+                onChange={(e) => setDetailsDateFrom(e.target.value)}
+                className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+              />
 
+              <input
+                type="datetime-local"
+                value={detailsDateTo}
+                onChange={(e) => setDetailsDateTo(e.target.value)}
+                className="h-[46px] rounded-[10px] border border-[#bcaaa4] bg-[#fffdfc] px-3.5 text-sm outline-none"
+              />
               <input
                 value={orderSearch}
                 onChange={(e) => setOrderSearch(e.target.value)}
