@@ -223,6 +223,7 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
   const [orderSearch, setOrderSearch] = useState("");
   const [orders, setOrders] = useState([]);
   const [selectedOrderNo, setSelectedOrderNo] = useState("");
+  const [selectedOrderNos, setSelectedOrderNos] = useState([]);
   const [details, setDetails] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
   const [message, setMessage] = useState({ text: "", type: "" });
@@ -234,6 +235,7 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
   const [selectedSections, setSelectedSections] = useState([]);
   const [sectionsLoading, setSectionsLoading] = useState(false);
   const [saveNotes, setSaveNotes] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const [detailsDateFrom, setDetailsDateFrom] = useState("");
   const [detailsDateTo, setDetailsDateTo] = useState("");
   const [pagination, setPagination] = useState({
@@ -329,7 +331,9 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
       isMounted = false;
     };
   }, []);
-
+  function getItemKey(item) {
+    return `${item.orderNo}-${item.id}`;
+  }
   function isItemAlreadySaved(item) {
     return !!item.savedByUserCode || !!item.savedAt;
   }
@@ -354,6 +358,7 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
 
     setOrders([]);
     setSelectedOrderNo("");
+    setSelectedOrderNos([]);
     setDetails([]);
     setSelectedItems([]);
 
@@ -482,6 +487,7 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
       setPagination(res.pagination || {});
       setDetails([]);
       setSelectedOrderNo("");
+      setSelectedOrderNos([]);
       setSelectedItems([]);
       setHasSearchedOrders(true);
       setHasLoadedDetails(false);
@@ -491,6 +497,7 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
       setOrders([]);
       setDetails([]);
       setSelectedOrderNo("");
+      setSelectedOrderNos([]);
       setSelectedItems([]);
       setHasSearchedOrders(true);
       setHasLoadedDetails(false);
@@ -505,6 +512,7 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
     mutationFn: getOrderDetails,
     onSuccess: (data, orderNo) => {
       setSelectedOrderNo(orderNo);
+      setSelectedOrderNos([orderNo]);
       setDetails(data || []);
       setSelectedItems([]);
       setHasLoadedDetails(true);
@@ -514,6 +522,7 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
       setDetails([]);
       setSelectedItems([]);
       setSelectedOrderNo("");
+      setSelectedOrderNos([]);
       setHasLoadedDetails(true);
       showMessage(
         error?.response?.data?.message || "Order number not found.",
@@ -522,16 +531,6 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
     },
   });
 
-  const saveMutation = useMutation({
-    mutationFn: ({ orderNo, payload }) => saveOrderItems(orderNo, payload),
-    onSuccess: (result) => {
-      setDetails(result.details || []);
-      setSelectedItems([]);
-      setSaveNotes("");
-      showMessage(result.message || "Saved successfully.", "success");
-      setIsModalOpen(false);
-    },
-  });
 
   async function handlePatientBlur() {
     const code = patientCode.trim();
@@ -588,9 +587,38 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
   }
 
   async function handleSelectOrder(orderNo) {
-    setDetailsDateFrom(dateFrom || "");
-    setDetailsDateTo(dateTo || "");
-    detailsMutation.mutate(orderNo);
+    const isAlreadySelected = selectedOrderNos.includes(orderNo);
+
+    const nextSelectedOrderNos = isAlreadySelected
+      ? selectedOrderNos.filter((no) => no !== orderNo)
+      : [...selectedOrderNos, orderNo];
+
+    setSelectedOrderNos(nextSelectedOrderNos);
+    setSelectedOrderNo(nextSelectedOrderNos[0] || "");
+    setSelectedItems([]);
+
+    if (nextSelectedOrderNos.length === 0) {
+      setSelectedOrderNo("");
+      setSelectedOrderNos([]);
+      setDetails([]);
+      setHasLoadedDetails(false);
+      return;
+    }
+
+    try {
+      const allDetails = await Promise.all(
+        nextSelectedOrderNos.map((no) => getOrderDetails(no)),
+      );
+
+      setDetails(allDetails.flat());
+      setHasLoadedDetails(true);
+      setMessage({ text: "", type: "" });
+    } catch (error) {
+      showMessage(
+        error?.response?.data?.message || "Failed to load order details.",
+        "error",
+      );
+    }
   }
   async function handleSearchByOrderNo() {
     const orderNo = orderSearch.trim();
@@ -624,6 +652,7 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
       // setDateFrom("");
       // setDateTo("");
       setSelectedOrderNo(orderNo);
+      setSelectedOrderNos([orderNo]);
       setDetails(orderDetails || []);
       setSelectedItems([]);
       setHasSearchedOrders(true);
@@ -634,6 +663,7 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
       setOrders([]);
       setDetails([]);
       setSelectedOrderNo("");
+      setSelectedOrderNos([]);
       setSelectedItems([]);
       setHasSearchedOrders(true);
       setHasLoadedDetails(true);
@@ -644,49 +674,107 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
       );
     }
   }
+  async function toggleAllOrders() {
+    if (!orders.length) return;
 
-  function toggleItem(itemId) {
-    const item = details.find((d) => d.id === itemId);
+    const allOrderNos = orders.map((order) => order.orderNo);
 
+    const allAlreadySelected = allOrderNos.every((orderNo) =>
+      selectedOrderNos.includes(orderNo),
+    );
+
+    if (allAlreadySelected) {
+      setSelectedOrderNos([]);
+      setSelectedOrderNo("");
+      setDetails([]);
+      setSelectedItems([]);
+      setHasLoadedDetails(false);
+      return;
+    }
+
+    setSelectedOrderNos(allOrderNos);
+    setSelectedOrderNo(allOrderNos[0]);
+    setSelectedItems([]);
+
+    try {
+      const allDetails = await Promise.all(
+        allOrderNos.map((orderNo) => getOrderDetails(orderNo)),
+      );
+
+      setDetails(allDetails.flat());
+      setHasLoadedDetails(true);
+      setMessage({ text: "", type: "" });
+    } catch (error) {
+      showMessage(
+        error?.response?.data?.message || "Failed to load order details.",
+        "error",
+      );
+    }
+  }
+  function toggleItem(item) {
     if (!item || isItemAlreadySaved(item)) return;
 
+    const key = getItemKey(item);
+
     setSelectedItems((prev) =>
-      prev.includes(itemId)
-        ? prev.filter((id) => id !== itemId)
-        : [...prev, itemId],
+      prev.includes(key) ? prev.filter((id) => id !== key) : [...prev, key],
     );
   }
-
   function toggleAll() {
     const availableItems = filteredDetails.filter(
       (item) => !isItemAlreadySaved(item),
     );
-    const availableIds = availableItems.map((item) => item.id);
+
+    const availableKeys = availableItems.map(getItemKey);
 
     if (
-      availableIds.length > 0 &&
-      availableIds.every((id) => selectedItems.includes(id))
+      availableKeys.length > 0 &&
+      availableKeys.every((key) => selectedItems.includes(key))
     ) {
       setSelectedItems((prev) =>
-        prev.filter((id) => !availableIds.includes(id)),
+        prev.filter((key) => !availableKeys.includes(key)),
       );
       return;
     }
 
-    setSelectedItems((prev) => [...new Set([...prev, ...availableIds])]);
+    setSelectedItems((prev) => [...new Set([...prev, ...availableKeys])]);
   }
 
   async function handleConfirmSave({ userCode, password, notes }) {
+    setIsSaving(true);
+
     try {
-      await saveMutation.mutateAsync({
-        orderNo: selectedOrderNo,
-        payload: {
-          selectedItems,
-          userCode,
-          password,
-          notes,
-        },
-      });
+      const selectedDetails = details.filter((item) =>
+        selectedItems.includes(getItemKey(item)),
+      );
+
+      const groupedByOrderNo = selectedDetails.reduce((acc, item) => {
+        if (!acc[item.orderNo]) acc[item.orderNo] = [];
+        acc[item.orderNo].push(item.id);
+        return acc;
+      }, {});
+
+      await Promise.all(
+        Object.entries(groupedByOrderNo).map(([orderNo, itemIds]) =>
+          saveOrderItems(orderNo, {
+            selectedItems: itemIds,
+            userCode,
+            password,
+            notes,
+          }),
+        ),
+      );
+
+      setSelectedItems([]);
+      setIsModalOpen(false);
+      setSaveNotes("");
+      showMessage("Saved successfully.", "success");
+
+      const refreshedDetails = await Promise.all(
+        selectedOrderNos.map((orderNo) => getOrderDetails(orderNo)),
+      );
+
+      setDetails(refreshedDetails.flat());
 
       return { success: true };
     } catch (error) {
@@ -694,9 +782,10 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
         success: false,
         message: error?.response?.data?.message || "Save failed.",
       };
+    } finally {
+      setIsSaving(false);
     }
   }
-
   function openSaveModal() {
     if (!selectedItems.length) {
       showMessage("Please select at least one item before saving.", "error");
@@ -784,7 +873,7 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
   const allSelected = useMemo(() => {
     return (
       selectableItems.length > 0 &&
-      selectableItems.every((item) => selectedItems.includes(item.id))
+      selectableItems.every((item) => selectedItems.includes(getItemKey(item)))
     );
   }, [selectableItems, selectedItems]);
 
@@ -899,7 +988,7 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
               disabled={
                 ordersMutation.isPending ||
                 detailsMutation.isPending ||
-                saveMutation.isPending
+                isSaving
               }
               className="h-[46px] rounded-xl border border-[#d7ccc8] bg-white px-[18px] text-sm font-bold text-[#5d4037] transition hover:bg-[#f7f1ee] disabled:cursor-not-allowed disabled:opacity-60"
             >
@@ -942,6 +1031,18 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
             <table className="w-full min-w-[1200px] text-left">
               <thead className="sticky top-0 z-10 bg-[#f4ece8]">
                 <tr className="bg-[#f4ece8] text-xs uppercase tracking-wide text-[#6d4c41]">
+                  <th className="w-[60px] p-3 text-center">
+                    <input
+                      type="checkbox"
+                      checked={
+                        orders.length > 0 &&
+                        orders.every((order) =>
+                          selectedOrderNos.includes(order.orderNo),
+                        )
+                      }
+                      onChange={toggleAllOrders}
+                    />
+                  </th>
                   <th
                     className="cursor-pointer p-3 select-none hover:text-[#4e342e]"
                     onClick={() => handleOrdersSort("orderNo")}
@@ -1000,13 +1101,13 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
                 >
                   {isOrdersTableLoading ? (
                     <tr>
-                      <td colSpan={6}>
+                      <td colSpan={7}>
                         <TableSpinner text="Loading unit dose orders..." />
                       </td>
                     </tr>
                   ) : !hasSearchedOrders ? (
                     <tr>
-                      <td colSpan={6}>
+                      <td colSpan={7}>
                         <TableEmptyState
                           title="No search yet"
                           subtitle="Enter Patient Code or date filters, then click Search."
@@ -1015,7 +1116,7 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
                     </tr>
                   ) : orders.length === 0 ? (
                     <tr>
-                      <td colSpan={6}>
+                      <td colSpan={7}>
                         <TableEmptyState
                           title="No orders found"
                           subtitle="No results matched the selected filters."
@@ -1024,7 +1125,7 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
                     </tr>
                   ) : (
                     sortedOrders.map((o) => {
-                      const isActive = selectedOrderNo === o.orderNo;
+                      const isActive = selectedOrderNos.includes(o.orderNo);
 
                       return (
                         <tr
@@ -1036,6 +1137,17 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
                               : "hover:bg-gray-100 "
                           }`}
                         >
+                          <td
+                            className="p-3 text-center"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedOrderNos.includes(o.orderNo)}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={() => handleSelectOrder(o.orderNo)}
+                            />
+                          </td>
                           <td className="p-3 whitespace-nowrap">{o.orderNo}</td>
                           <td className="p-3 whitespace-nowrap">
                             {formatDate(o.actionDate)}
@@ -1317,17 +1429,17 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
                     <AnimatePresence initial={false}>
                       {sortedDetails.map((d) => (
                         <motion.tr
-                          key={d.id}
+                          key={getItemKey(d)}
                           layout
                           initial={{ opacity: 0, y: 10, scale: 0.98 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: -10, scale: 0.98 }}
                           transition={{ duration: 0.2, ease: "easeOut" }}
-                          onClick={() => toggleItem(d.id)}
+                          onClick={() => toggleItem(d)}
                           className={`cursor-pointer transition-colors duration-150 ${
                             isItemAlreadySaved(d)
                               ? "bg-[#f7f1ee] text-[#8d6e63] cursor-not-allowed"
-                              : selectedItems.includes(d.id)
+                              : selectedItems.includes(getItemKey(d))
                                 ? "bg-[rgba(21,98,160,0.12)]"
                                 : "hover:bg-gray-50"
                           }`}
@@ -1389,10 +1501,10 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
                           <td className="border border-[#e5ddd8] p-3 text-center align-middle">
                             <input
                               type="checkbox"
-                              checked={selectedItems.includes(d.id)}
+                              checked={selectedItems.includes(getItemKey(d))}
                               disabled={isItemAlreadySaved(d)}
                               onClick={(e) => e.stopPropagation()}
-                              onChange={() => toggleItem(d.id)}
+                              onChange={() => toggleItem(d)}
                               className="h-[18px] w-[18px] accent-[#6d4c41] disabled:cursor-not-allowed disabled:opacity-50"
                             />
                           </td>
@@ -1413,7 +1525,7 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
 
             <button
               onClick={openSaveModal}
-              disabled={!selectedItems.length || saveMutation.isPending}
+              disabled={!selectedItems.length || isSaving}
               className="rounded-xl bg-[#5d4037] px-4 py-2 text-white disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Save
@@ -1428,7 +1540,7 @@ export default function UnitDoseTab({ registerRefreshHandler }) {
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onConfirm={handleConfirmSave}
-        loading={saveMutation.isPending}
+        loading={isSaving}
         selectedCount={selectedCount}
         defaultNotes={saveNotes}
       />
